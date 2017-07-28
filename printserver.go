@@ -69,7 +69,7 @@ type Configs struct {
 func ConfigJson() string {
 
 	// Defining the values of our config
-	data := &Configs{Domain: "localhost", Process: "2", Ping: "ok", ServerPort: "9001", Host: "", Schema: "http", ServerHost: "locahost"}
+	data := &Configs{Domain: "localhost", Process: "2", Ping: "ok", ServerPort: "9001", Host: "", Schema: "http", ServerHost: "localhost"}
 
 	// Converting our struct into json format
 	cjson, err := json.Marshal(data)
@@ -260,13 +260,13 @@ func Print(w http.ResponseWriter, req *http.Request) {
 			//
 			//
 			//
-			command := "lpr -P zebra -o raw " + PathZpl
+			// command := "lpr -P zebra -o raw "
 
 			//
 			// To print zpl on zebra printer in linux terminal
 			//
 
-			out, errc := exec.Command(command).Output()
+			out, errc := exec.Command("lpr", "-P", "zebra", "-o", "raw", PathZpl).Output()
 
 			if errc != nil {
 
