@@ -19,8 +19,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/didip/tollbooth"
+	// "io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"time"
 )
 
@@ -28,18 +31,19 @@ import (
 //
 //
 const (
-	HttpSucess      = 200
-	HttpErrorLimit  = 429
-	HttpError       = 500
-	HttpHeaderTitle = `PrintServer`
-	HttpHeaderMsg   = `Good Server, thank you.`
+	HttpSucess         = 200
+	HttpErrorLimit     = 429
+	HttpErrorNoContent = 204
+	HttpError          = 500
+	HttpHeaderTitle    = `PrintServer`
+	HttpHeaderMsg      = `Good Server, thank you.`
+	NewLimiter         = 1
 )
 
 //
 //
 //
 var (
-	NewLimiter    int64
 	err           error
 	returns       string
 	confServer    *http.Server
@@ -112,6 +116,47 @@ func JsonMsg(codeInt int, msgText string) string {
 }
 
 //
+//
+//
+func check(e error) {
+
+	if e != nil {
+
+		panic(e)
+	}
+}
+
+//
+//
+//
+func ShowScreen(cfg *Configs) {
+
+	//
+	//
+	//
+	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/ping"
+
+	//
+	//
+	//
+	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/print"
+
+	//
+	// Showing on the screen
+	//
+	fmt.Println("Start port:", cfg.ServerPort)
+	fmt.Println("Endpoints:")
+	fmt.Println(ping)
+	fmt.Println(printer)
+	fmt.Println("Max bytes:", 1<<23, "bytes")
+
+	//
+	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
+	//
+	fmt.Println("NewLimiter:", NewLimiter)
+}
+
+//
 // Testing whether the service is online
 //
 func Ping(w http.ResponseWriter, req *http.Request) {
@@ -149,6 +194,8 @@ func Print(w http.ResponseWriter, req *http.Request) {
 
 	var json_msg string
 
+	var HttpMsgHeader int
+
 	//
 	//
 	//
@@ -157,7 +204,87 @@ func Print(w http.ResponseWriter, req *http.Request) {
 		//
 		//
 		//
-		json_msg = `{"msg":"sucess"}`
+		ZPL := req.FormValue("zpl")
+
+		//
+		//
+		//
+		CODE := req.FormValue("code")
+
+		if len(CODE) == 0 || len(ZPL) == 0 {
+
+			json_msg = `{"msg":"error No Content!"}`
+
+			HttpMsgHeader = HttpErrorNoContent
+
+		} else {
+
+			HttpMsgHeader = HttpSucess
+
+			//
+			//
+			//
+			PathZpl := "/tmp/" + CODE + ".zpl"
+
+			//
+			// Generate a .zpl file
+			//
+			ZplByte := []byte(ZPL)
+
+			//
+			//
+			//
+			f, err := os.Create(PathZpl)
+
+			//
+			//
+			check(err)
+
+			//
+			//
+			//
+			defer f.Close()
+
+			//
+			//
+			//
+			size, errx := f.Write(ZplByte)
+
+			//
+			//
+			//
+			// err = ioutil.WriteFile(PathZpl, ZplByte, 0754)
+
+			check(errx)
+
+			//
+			//
+			//
+			command := "lpr -P zebra -o raw " + PathZpl
+
+			//
+			// To print zpl on zebra printer in linux terminal
+			//
+
+			out, errc := exec.Command(command).Output()
+
+			if errc != nil {
+
+				// log.Fatal(errc)
+				fmt.Println(errc)
+			}
+
+			//
+			//
+			//
+			fmt.Printf("Running command%s\n", out)
+
+			//
+			//
+			//
+			json_msg = `{"msg":"Printing performed successfully","bytes":"` + fmt.Sprintf("%d", size) + `"}`
+
+		}
 
 	} else {
 
@@ -180,7 +307,7 @@ func Print(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	//
-	w.WriteHeader(HttpSucess)
+	w.WriteHeader(HttpMsgHeader)
 
 	//
 	//
@@ -198,27 +325,21 @@ func main() {
 	//
 	//
 	//
-	NewLimiter = 1
+	ShowScreen(cfg)
 
-	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/ping"
-	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/print"
-
+	//
 	// Create a request limiter per handler.
+	//
 	http.Handle("/ping", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(NewLimiter, time.Second), Ping))
 
+	//
+	// Create the print server
+	//
 	http.Handle("/print", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(NewLimiter, time.Second), Print))
 
-	fmt.Println("Start port:", cfg.ServerPort)
-	fmt.Println("Endpoints:")
-	fmt.Println(ping)
-	fmt.Println(printer)
-	fmt.Println("Max bytes:", 1<<20, "bytes")
-
 	//
-	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
 	//
-	fmt.Println("NewLimiter:", NewLimiter)
-
+	//
 	confServer = &http.Server{
 
 		Addr: ":" + cfg.ServerPort,
@@ -226,7 +347,7 @@ func main() {
 		// Handler:        myHandler,
 		// ReadTimeout:    1 * time.Second,
 		// WriteTimeout:   1 * time.Second,''
-		MaxHeaderBytes: 1 << 20,
+		MaxHeaderBytes: 1 << 23,
 	}
 
 	log.Fatal(confServer.ListenAndServe())
