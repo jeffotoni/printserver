@@ -12,28 +12,41 @@
 
 package main
 
+//
+//
+//
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/didip/tollbooth"
+	"log"
 	"net/http"
 	"time"
 )
 
-type MyInt int64
+//
+//
+//
+const (
+	HttpSucess      = 200
+	HttpErrorLimit  = 429
+	HttpError       = 500
+	HttpHeaderTitle = `PrintServer`
+	HttpHeaderMsg   = `Good Server, thank you.`
+)
 
 //
 //
 //
 var (
-	NewLimiter    MyInt
+	NewLimiter    int64
 	err           error
 	returns       string
 	confServer    *http.Server
-	AUTHORIZATION = `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+	AUTHORIZATION = `bc9c154ebabc6f3da724e9x5fef78765`
 )
 
-//
+//''
 // Structure of our server configurations
 //
 type Configs struct {
@@ -52,7 +65,7 @@ type Configs struct {
 func ConfigJson() string {
 
 	// Defining the values of our config
-	data := &Configs{Domain: "localhost", Process: "2", Ping: "ok", ServerPort: "9001", Host: "", Schema: "http", ServerHost: "localhost"}
+	data := &Configs{Domain: "localhost", Process: "2", Ping: "ok", ServerPort: "9001", Host: "", Schema: "http", ServerHost: "locahost"}
 
 	// Converting our struct into json format
 	cjson, err := json.Marshal(data)
@@ -116,6 +129,16 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	//
+	w.Header().Set(HttpHeaderTitle, HttpHeaderMsg)
+
+	//
+	//
+	//
+	w.WriteHeader(HttpSucess)
+
+	//
+	//
+	//
 	w.Write(pong)
 }
 
@@ -124,20 +147,40 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 //
 func Print(w http.ResponseWriter, req *http.Request) {
 
-	//
-	//
-	//
-	json_ok := `{"msg":"sucess"}`
+	var json_msg string
 
 	//
 	//
 	//
-	// json_err := `{"msg":"error"}`
+	if req.Method == "POST" {
+
+		//
+		//
+		//
+		json_msg = `{"msg":"sucess"}`
+
+	} else {
+
+		//
+		//
+		//
+		json_msg = `{"msg":"Error Only accepts POST"}`
+	}
 
 	//
 	//
 	//
-	json := []byte(json_ok)
+	json := []byte(json_msg)
+
+	//
+	//
+	//
+	w.Header().Set(HttpHeaderTitle, HttpHeaderMsg)
+
+	//
+	//
+	//
+	w.WriteHeader(HttpSucess)
 
 	//
 	//
@@ -147,7 +190,15 @@ func Print(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 
+	//
+	//
+	//
 	cfg := Config()
+
+	//
+	//
+	//
+	NewLimiter = 1
 
 	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/ping"
 	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/print"
@@ -170,10 +221,11 @@ func main() {
 
 	confServer = &http.Server{
 
-		Addr: ":" + port,
+		Addr: ":" + cfg.ServerPort,
+
 		// Handler:        myHandler,
 		// ReadTimeout:    1 * time.Second,
-		// WriteTimeout:   1 * time.Second,
+		// WriteTimeout:   1 * time.Second,''
 		MaxHeaderBytes: 1 << 20,
 	}
 
