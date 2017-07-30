@@ -24,3 +24,51 @@ go get "github.com/didip/tollbooth"
 $ go build printserver.go
 
 $ sudo cp printserver /usr/bin
+
+```go
+
+func main() {
+
+	//
+	//
+	//
+	cfg := Config()
+
+	//
+	//
+	//
+	ShowScreen(cfg)
+
+	// You can create a generic limiter for all your handlers
+	// or one for each handler. Your choice.
+	// This limiter basically says: allow at most 1 request per 1 second.
+	limiter := tollbooth.NewLimiter(5, time.Second)
+
+	//
+	// Create a request limiter per handler.
+	//
+	http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+
+	//
+	// Create the print server
+	//
+	http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+
+	//
+	//
+	//
+	confServer = &http.Server{
+
+		Addr: ":" + cfg.ServerPort,
+
+		// Handler:        myHandlerHere,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   20 * time.Second,
+		MaxHeaderBytes: 1 << 23, // Size accepted by package
+	}
+
+	log.Fatal(confServer.ListenAndServe())
+
+}
+
+```
