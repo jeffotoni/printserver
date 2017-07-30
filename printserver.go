@@ -37,7 +37,7 @@ const (
 	HttpError          = 500
 	HttpHeaderTitle    = `PrintServer`
 	HttpHeaderMsg      = `Good Server, thank you.`
-	NewLimiter         = 1
+	NewLimiter         = 300
 )
 
 //
@@ -184,6 +184,11 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	//
+	fmt.Println(string(pong))
+
+	//
+	//
+	//
 	w.Write(pong)
 }
 
@@ -315,6 +320,20 @@ func Print(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
+type makeHandler struct {
+	YourVariable string
+}
+
+func (m *makeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	//yourVariableYouNeed := m.YourVariable
+	// do whatever
+
+	// w.Write()
+}
+
+// do whatever you need to get your variable
+
 func main() {
 
 	//
@@ -327,15 +346,41 @@ func main() {
 	//
 	ShowScreen(cfg)
 
+	// You can create a generic limiter for all your handlers
+	// or one for each handler. Your choice.
+	// This limiter basically says: allow at most 1 request per 1 second.
+	limiter := tollbooth.NewLimiter(2, time.Second)
+
+	fmt.Println(limiter)
+	// // This is an example on how to limit only GET and POST requests.
+	// limiter.Methods = []string{"GET", "POST"}
+
+	// // You can also limit by specific request headers, containing certain values.
+	// // Typically, you prefetched these values from the database.
+	// limiter.Headers = make(map[string][]string)
+
+	// limiter.Headers["X-Access-Token"] = []string{"abc123", "xyz098"}
+
+	// And finally, you can limit access based on basic auth usernames.
+	// Typically, you prefetched these values from the database as well.
+	// limiter.BasicAuthUsers = []string{"bob", "joe", "didip"}
+
+	//blah := &makeHandler{tollbooth.LimitFuncHandler(tollbooth.NewLimiter(1000, time.Second), Ping)}
+
 	//
 	// Create a request limiter per handler.
 	//
-	http.Handle("/ping", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(NewLimiter, time.Second), Ping))
+	// http.Handle("/ṕing", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(2, time.Second), Ping))
+
+	// http.HandleFunc("/ping", Ping)
+
+	http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+	// http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
 
 	//
 	// Create the print server
 	//
-	http.Handle("/print", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(NewLimiter, time.Second), Print))
+	// http.Handle("/print", tollbooth.LimitFuncHandler(tollbooth.NewLimiter(5, time.Second), Print))
 
 	//
 	//
@@ -344,10 +389,10 @@ func main() {
 
 		Addr: ":" + cfg.ServerPort,
 
-		// Handler:        myHandler,
-		// ReadTimeout:    1 * time.Second,
-		// WriteTimeout:   1 * time.Second,''
-		MaxHeaderBytes: 1 << 23,
+		// Handler:        myHandlerHere,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   20 * time.Second,
+		MaxHeaderBytes: 1 << 23, // Size accepted by package
 	}
 
 	log.Fatal(confServer.ListenAndServe())
