@@ -18,8 +18,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	// "github.com/dgrijalva/jwt-go"
 	"github.com/didip/tollbooth"
-	// "io/ioutil"
 	"log"
 	"net/http"
 	"os"

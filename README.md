@@ -19,6 +19,8 @@ The good thing is that we will send everything encrypted, but we can choose to e
 
 go get "github.com/didip/tollbooth"
 
+go get -u github.com/dgrijalva/jwt-go
+
 # Install
 
 $ go build printserver.go
