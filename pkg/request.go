@@ -54,11 +54,17 @@ func ShootUrl(Url string) string {
 
 		json.Unmarshal([]byte(string(body)), &ping)
 
-		// fmt.Println("msg:", string(ping.Msg))
+		//
+		//
+		//
+		msg2 := ping.Msg
 
+		//
+		//
+		//
 		ping.Msg = ""
 
-		return string(ping.Msg)
+		return string(msg2)
 
 	} else {
 
