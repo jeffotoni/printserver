@@ -203,6 +203,52 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 }
 
 //
+// Testing whether the service is online
+//
+func Ping2(w http.ResponseWriter, req *http.Request) {
+
+	//
+	//
+	//
+	json := `{"msg":"pong2"}`
+
+	//
+	//
+	//
+	pong := []byte(json)
+
+	//
+	//
+	//
+	w.Header().Set(HttpHeaderTitle, HttpHeaderMsg)
+
+	//
+	//
+	//
+	w.Header().Set("X-Custom-Header", "HeaderValue-x83838374774")
+
+	//
+	//
+	//
+	w.Header().Set("Content-Type", "application/json")
+
+	//
+	//
+	//
+	w.WriteHeader(HttpSucess)
+
+	//
+	//
+	//
+	// fmt.Println(string(pong))
+
+	//
+	//
+	//
+	w.Write(pong)
+}
+
+//
 //
 //
 func Print(w http.ResponseWriter, req *http.Request) {
@@ -376,6 +422,11 @@ func main() {
 	// Create a request limiter per handler.
 	//
 	http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+
+	//
+	// Create a request limiter per handler.
+	//
+	http.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
 
 	//
 	// Create the print server

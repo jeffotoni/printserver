@@ -18,11 +18,17 @@ package main
 
 import (
 	"fmt"
-	request "github.com/src/jeffotoni/printserver/pkg/request"
+	Shoot "github.com/jeffotoni/printserver/pkg"
 	"time"
 )
 
 func main() {
+
+	var endPoint1 string
+	//var endPoint2 string
+
+	endPoint1 = "http://localhost:9001/ping"
+	//endPoint2 = "http://localhost:9001/ping2"
 
 	// First we'll look at basic rate limiting. Suppose
 	// we want to limit our handling of incoming requests.
@@ -53,7 +59,7 @@ func main() {
 
 		fmt.Println("request: ", req, time.Now())
 
-		ShootUrl()
+		Shoot.ShootUrl(endPoint1)
 
 		// Shoot first url
 
