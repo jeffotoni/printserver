@@ -21,20 +21,9 @@ type Ping struct {
 	Msg string `json:"msg"`
 }
 
-func ShootUrl(Url string) {
+func ShootUrl(Url string) string {
 
 	var ping = &Ping{}
-
-	// Url := "http://localhost:9001/ping"
-
-	fmt.Println("URL:>", Url)
-
-	// var jsonStr = []byte(`{"msg":"hello"}`)
-	// bytes.NewBuffer(jsonStr)
-
-	// for i := 0; i < 10; i++ {
-
-	// time.Sleep(time.Duration(200) * time.Millisecond)
 
 	req, err := http.NewRequest("POST", Url, nil)
 
@@ -64,12 +53,14 @@ func ShootUrl(Url string) {
 
 		json.Unmarshal([]byte(string(body)), &ping)
 
-		fmt.Println("msg:", string(ping.Msg))
+		// fmt.Println("msg:", string(ping.Msg))
+
+		return string(ping.Msg)
 
 	} else {
 
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("Error")
+		//fmt.Println("response Status:", resp.Status)
+		fmt.Println("error")
 
 	}
 

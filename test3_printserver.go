@@ -19,23 +19,22 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
+	"os"
 	"time"
 )
 
 func main() {
 
-	var endPoint1 string
-	//var endPoint2 string
-
-	endPoint1 = "http://localhost:9001/ping"
+	endPoint1 := "http://localhost:9001/ping"
 	//endPoint2 = "http://localhost:9001/ping2"
 
 	// First we'll look at basic rate limiting. Suppose
 	// we want to limit our handling of incoming requests.
 	// We'll serve these requests off a channel of the
 	// same name.
-	requests := make(chan int, 5)
-	for i := 1; i <= 5; i++ {
+	requests := make(chan int, 10)
+
+	for i := 1; i <= 10; i++ {
 
 		// println("Loading requests")
 
@@ -46,7 +45,9 @@ func main() {
 	// This `limiter` channel will receive a value
 	// every 300 milliseconds. This is the regulator in
 	// our rate limiting scheme.
-	limiter := time.Tick(time.Millisecond * 300)
+	limiter := time.Tick(time.Millisecond * 180)
+
+	time1 := time.Now()
 
 	// By blocking on a receive from the `limiter` channel
 	// before serving each request, we limit ourselves to
@@ -57,13 +58,21 @@ func main() {
 
 		<-limiter
 
-		fmt.Println("request: ", req, time.Now())
+		// fmt.Println("request: ", req, time.Now())
+		fmt.Println("request: ", req)
 
-		Shoot.ShootUrl(endPoint1)
+		msg := Shoot.ShootUrl(endPoint1)
 
+		fmt.Println("msg: ", msg)
 		// Shoot first url
 
 	}
+
+	time2 := time.Now()
+	diff := time2.Sub(time1)
+	fmt.Println(diff)
+
+	os.Exit(1)
 
 	// We may want to allow short bursts of requests in
 	// our rate limiting scheme while preserving the
@@ -85,8 +94,10 @@ func main() {
 
 		for t := range time.Tick(time.Millisecond * 300) {
 
-			// println("Loading limit range")
+			println("Loading limit range")
 			burstyLimiter <- t
+
+			// Shoot.ShootUrl(endPoint1)
 		}
 	}()
 
@@ -101,6 +112,7 @@ func main() {
 	}
 
 	close(burstyRequests)
+
 	for req := range burstyRequests {
 
 		<-burstyLimiter
