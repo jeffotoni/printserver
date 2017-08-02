@@ -36,6 +36,7 @@ func ShootUrl(Url string) string {
 	resp, err := client.Do(req)
 
 	if err != nil {
+
 		panic(err)
 	}
 
@@ -55,15 +56,14 @@ func ShootUrl(Url string) string {
 
 		// fmt.Println("msg:", string(ping.Msg))
 
+		ping.Msg = ""
+
 		return string(ping.Msg)
 
 	} else {
 
-		//fmt.Println("response Status:", resp.Status)
+		ping.Msg = ""
 		return string("error")
 
 	}
-
-	ping.Msg = ""
-	//}
 }
