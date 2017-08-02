@@ -60,7 +60,7 @@ func ShootUrl(Url string) string {
 	} else {
 
 		//fmt.Println("response Status:", resp.Status)
-		fmt.Println("error")
+		return "error"
 
 	}
 
