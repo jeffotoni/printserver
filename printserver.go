@@ -142,13 +142,20 @@ func ShowScreen(cfg *Configs) {
 	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/print"
 
 	//
+	//
+	//
+	sizeBytes := 1 << 23
+
+	sizeMb := (sizeBytes / 1024) / 1024
+
+	//
 	// Showing on the screen
 	//
 	fmt.Println("Start port:", cfg.ServerPort)
 	fmt.Println("Endpoints:")
 	fmt.Println(ping)
 	fmt.Println(printer)
-	fmt.Println("Max bytes:", 1<<23, "bytes")
+	fmt.Println("Max bytes:", sizeMb, "Mb")
 
 	//
 	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
