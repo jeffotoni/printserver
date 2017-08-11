@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
-	"os"
+	// "os"
 	"time"
 )
 
@@ -32,90 +32,99 @@ func main() {
 	// we want to limit our handling of incoming requests.
 	// We'll serve these requests off a channel of the
 	// same name.
-	requests := make(chan int, 10)
+	requests := make(chan int, 20)
 
-	for i := 1; i <= 10; i++ {
+	//
+	// Requests quantity channel
+	//
+	go func(requests chan int) {
 
-		// println("Loading requests")
+		for i := 1; i <= 20; i++ {
 
-		requests <- i
-	}
-	close(requests)
-
-	// This `limiter` channel will receive a value
-	// every 300 milliseconds. This is the regulator in
-	// our rate limiting scheme.
-	limiter := time.Tick(time.Millisecond * 180)
-
-	time1 := time.Now()
-
-	// By blocking on a receive from the `limiter` channel
-	// before serving each request, we limit ourselves to
-	// 1 request every 200 milliseconds.
-	for req := range requests {
-
-		// println("Shoot url")
-
-		<-limiter
-
-		// fmt.Println("request: ", req, time.Now())
-		fmt.Println("request: ", req)
-
-		msg := Shoot.ShootUrl(endPoint1)
-
-		fmt.Println("msg: ", msg)
-		// Shoot first url
-
-	}
-
-	time2 := time.Now()
-	diff := time2.Sub(time1)
-	fmt.Println(diff)
-
-	os.Exit(1)
-
-	// We may want to allow short bursts of requests in
-	// our rate limiting scheme while preserving the
-	// overall rate limit. We can accomplish this by
-	// buffering our limiter channel. This `burstyLimiter`
-	// channel will allow bursts of up to 3 events.
-	burstyLimiter := make(chan time.Time, 3)
-
-	// Fill up the channel to represent allowed bursting.
-	for i := 0; i < 3; i++ {
-
-		// println("Loading limit")
-		burstyLimiter <- time.Now()
-	}
-
-	// Every 300 milliseconds we'll try to add a new
-	// value to `burstyLimiter`, up to its limit of 3.
-	go func() {
-
-		for t := range time.Tick(time.Millisecond * 300) {
-
-			println("Loading limit range")
-			burstyLimiter <- t
-
-			// Shoot.ShootUrl(endPoint1)
+			println("Loading requests: ", fmt.Sprintf("%d", i))
+			time.Sleep(time.Millisecond * 50)
+			requests <- i
 		}
-	}()
 
-	// Now simulate 5 more incoming requests. The first
-	// 3 of these will benefit from the burst capability
-	// of `burstyLimiter`.
-	burstyRequests := make(chan int, 5)
+		close(requests)
 
-	for i := 1; i <= 5; i++ {
+	}(requests)
 
-		burstyRequests <- i
-	}
+	//
+	//
+	//
+	go func(requests chan int) {
 
-	close(burstyRequests)
+		// This `limiter` channel will receive a value
+		// every 300 milliseconds. This is the regulator in
+		// our rate limiting scheme.
+		limiter := time.Tick(time.Millisecond * 200)
+		// limiter2 := time.Tick(time.Millisecond * 500)
 
-	for req := range burstyRequests {
+		time1 := time.Now()
 
-		<-burstyLimiter
-		fmt.Println("request", req, time.Now())
-	}
+		// By blocking on a receive from the `limiter` channel
+		// before serving each request, we limit ourselves to
+		// 1 request every 200 milliseconds.
+		for req := range requests {
+
+			<-limiter
+
+			msg := Shoot.ShootUrl(endPoint1)
+			fmt.Println("request: ", req, "msg: ", msg)
+		}
+
+		time2 := time.Now()
+		diff := time2.Sub(time1)
+		fmt.Println(diff)
+
+	}(requests)
+
+	println("Enter enter to finish")
+	var input string
+	fmt.Scanln(&input)
+
+	// // We may want to allow short bursts of requests in
+	// // our rate limiting scheme while preserving the
+	// // overall rate limit. We can accomplish this by
+	// // buffering our limiter channel. This `burstyLimiter`
+	// // channel will allow bursts of up to 3 events.
+	// burstyLimiter := make(chan time.Time, 3)
+
+	// // Fill up the channel to represent allowed bursting.
+	// for i := 0; i < 3; i++ {
+
+	//  // println("Loading limit")
+	//  burstyLimiter <- time.Now()
+	// }
+
+	// // Every 300 milliseconds we'll try to add a new
+	// // value to `burstyLimiter`, up to its limit of 3.
+	// go func() {
+
+	//  for t := range time.Tick(time.Millisecond * 300) {
+
+	//      println("Loading limit range")
+	//      burstyLimiter <- t
+	//      // Shoot.ShootUrl(endPoint1)
+	//  }
+	// }()
+
+	// // Now simulate 5 more incoming requests. The first
+	// // 3 of these will benefit from the burst capability
+	// // of `burstyLimiter`.
+	// burstyRequests := make(chan int, 5)
+
+	// for i := 1; i <= 5; i++ {
+
+	//  burstyRequests <- i
+	// }
+
+	// close(burstyRequests)
+
+	// for req := range burstyRequests {
+
+	//  <-burstyLimiter
+	//  fmt.Println("request", req, time.Now())
+	// }
 }
