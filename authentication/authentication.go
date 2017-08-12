@@ -18,11 +18,14 @@ package authentication
 
 import (
 	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/jeffotoni/printserver/models"
 	"io/ioutil"
+	"net/http"
+	"time"
 )
 
 var (
@@ -137,6 +140,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//
+// Validate Token
+//
 func ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, &models.Claim{}, func(token *jwt.Token) (interface{}, error) {
