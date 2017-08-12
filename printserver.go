@@ -135,6 +135,16 @@ func ShowScreen(cfg *Configs) {
 	//
 	//
 	//
+	login := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/login"
+
+	//
+	//
+	//
+	validate := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/validate"
+
+	//
+	//
+	//
 	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/ping"
 
 	//
@@ -154,8 +164,11 @@ func ShowScreen(cfg *Configs) {
 	//
 	fmt.Println("Start port:", cfg.ServerPort)
 	fmt.Println("Endpoints:")
+	fmt.Println(login)
+	fmt.Println(validate)
 	fmt.Println(ping)
 	fmt.Println(printer)
+
 	fmt.Println("Max bytes:", sizeMb, "Mb")
 
 	//
@@ -444,12 +457,12 @@ func main() {
 	//
 	// Login
 	//
-	http.Handle("/login", authentication.Login)
+	http.HandleFunc("/login", authentication.Login)
 
 	//
 	// Validate
 	//
-	http.Handle("/validate", authentication.ValidateToken)
+	http.HandleFunc("/validate", authentication.ValidateToken)
 
 	//
 	//

@@ -16,7 +16,7 @@ package models
 // jwt
 //
 type User struct {
-	Name string `json:"Name"`
+	Name string `json:"name"`
 
 	Password string `json:"password,omitempty"`
 
