@@ -85,7 +85,7 @@ func GenerateJWT(user models.User) string {
 	//
 	claims := models.Claim{
 
-		User: user,
+		User: user.Name,
 		StandardClaims: jwt.StandardClaims{
 
 			// Expires in 8 hours
