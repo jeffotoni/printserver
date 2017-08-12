@@ -37,13 +37,13 @@ func init() {
 
 	privateByte, err := ioutil.ReadFile("./private.rsa")
 
-	if err != nill {
+	if err != nil {
 		fmt.Println("Private key not found!")
 	}
 
 	publicByte, err := ioutil.ReadFile("./public.rsa.pub")
 
-	if err != nill {
+	if err != nil {
 		fmt.Println("Public key not found!")
 	}
 

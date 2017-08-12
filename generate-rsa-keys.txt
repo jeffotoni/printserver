@@ -1,0 +1,9 @@
+# 
+# Generate rsa keys
+#
+
+# Generate private key of 1024 bytes
+openssl genrsa -out private.rsa 1024
+
+# Generating public key from the private key
+openssl rsa -in private.rsa -pubout > public.rsa.pub
