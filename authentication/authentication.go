@@ -38,27 +38,39 @@ var (
 //
 func init() {
 
+	//
+	//
+	//
 	privateByte, err := ioutil.ReadFile("./private.rsa")
 
 	if err != nil {
 		fmt.Println("Private key not found!")
 	}
 
+	//
+	//
+	//
 	publicByte, errx := ioutil.ReadFile("./public.rsa.pub")
 
 	if errx != nil {
 		fmt.Println("Public key not found!")
 	}
 
-	privateKey, erry := jwt.ParseRSAPrivateKeyFromPEM(privateByte)
+	//
+	//
+	//
+	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateByte)
 
-	if erry != nil {
+	if err != nil {
 		fmt.Println("Could not parse privatekey")
 	}
 
-	publicKey, errz := jwt.ParseRSAPublicKeyFromPEM(publicByte)
+	//
+	//
+	//
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicByte)
 
-	if errz != nil {
+	if err != nil {
 		fmt.Println("Could not parse publickey")
 	}
 }
