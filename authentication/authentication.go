@@ -21,6 +21,7 @@ import (
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/jeffotoni/printserver/models"
 	"io/ioutil"
 )
 
@@ -48,12 +49,12 @@ func init() {
 
 	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
 	if err != nil {
-		fmt.Println("No se pudo hacer el parse a privatekey")
+		fmt.Println("Could not parse privatekey")
 	}
 
 	publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicBytes)
 	if err != nil {
-		fmt.Println("No se pudo hacer el parse a privatekey")
+		fmt.Println("Could not parse publickey")
 	}
 }
 
@@ -62,54 +63,118 @@ func init() {
 //
 func GenerateJWT(user models.User) string {
 
+	//
+	// claims Token data, the header
+	//
 	claims := models.Claim{
 
 		User: user,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+
+			// Expires in 8 hours
+			ExpiresAt: time.Now().Add(time.Hour * 8).Unix(),
 			Issuer:    "printserver zebra",
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	result, err := token.SignedString(privateKey)
+	//
+	// Transforming into string
+	//
+	tokenString, err := token.SignedString(privateKey)
 
 	if err != nil {
 
-		fmt.Println("No se pudo firmar el token!")
+		fmt.Println("Could not sign the token!")
 
 	}
 
-	return result
+	//
+	// return token string
+	//
+	return tokenString
 }
 
+//
+// login e password default
+//
 func Login(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
+
 	err := json.NewDecoder(r.Body).Decode(&user)
+
 	if err != nil {
-		fmt.Fprintln(w, "Error al leer el usuario %s", err)
+
+		fmt.Fprintln(w, "Error reading user %s", err)
 		return
 	}
 
-	if user.Name == "alexys" && user.Password == "alexys" {
+	if user.Name == "jeff" && user.Password == "1234" {
+
 		user.Password = ""
 		user.Role = "admin"
 
 		token := GenerateJWT(user)
+
 		result := models.ResponseToken{token}
 		jsonResult, err := json.Marshal(result)
+
 		if err != nil {
-			fmt.Fprintln(w, "Error al generar el json")
+			fmt.Fprintln(w, "Error generating json!")
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResult)
+
 	} else {
+
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintln(w, "Uusario o clave no válidos")
+		fmt.Fprintln(w, "Invalid user or key!")
+	}
+}
+
+func ValidateToken(w http.ResponseWriter, r *http.Request) {
+
+	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, &models.Claim{}, func(token *jwt.Token) (interface{}, error) {
+		return publicKey, nil
+	})
+
+	if err != nil {
+
+		switch err.(type) {
+
+		case *jwt.ValidationError:
+			vErr := err.(*jwt.ValidationError)
+
+			switch vErr.Errors {
+
+			case jwt.ValidationErrorExpired:
+				fmt.Fprintln(w, "Your token has expired!")
+				return
+			case jwt.ValidationErrorSignatureInvalid:
+				fmt.Fprintln(w, "Token signature does not match!")
+				return
+			default:
+				fmt.Fprintln(w, "Your token is invalid!")
+				return
+			}
+		default:
+			fmt.Fprintln(w, "Your token is invalid!")
+			return
+		}
+	}
+
+	if token.Valid {
+
+		w.WriteHeader(http.StatusAccepted)
+		fmt.Fprintln(w, "Welcome to the system!")
+
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintln(w, "Your token is invalid!")
 	}
 }

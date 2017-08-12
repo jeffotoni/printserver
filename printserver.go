@@ -20,6 +20,7 @@ import (
 	"fmt"
 	// "github.com/dgrijalva/jwt-go"
 	"github.com/didip/tollbooth"
+	"github.com/jeffotoni/printserver/authentication"
 	"log"
 	"net/http"
 	"os"
@@ -196,7 +197,7 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	//
-	w.WriteHeader(HttpSucess)
+	w.WriteHeader(http.StatusOK)
 
 	//
 	//
@@ -242,7 +243,7 @@ func Ping2(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	//
-	w.WriteHeader(HttpSucess)
+	w.WriteHeader(http.StatusOK)
 
 	//
 	//
@@ -409,11 +410,11 @@ func main() {
 
 	// You can create a generic limiter for all your handlers
 	// or one for each handler. Your choice.
-	// This limiter basically says: allow at most 1 request per 1 second.
+	// This limiter basically says: allow at most 10 request per 1 second.
 	limiter := tollbooth.NewLimiter(5, time.Second)
 
-	// // This is an example on how to limit only GET and POST requests.
-	// limiter.Methods = []string{"GET", "POST"}
+	// This is an example on how to limit only GET and POST requests.
+	limiter.Methods = []string{"GET", "POST"}
 
 	// // You can also limit by specific request headers, containing certain values.
 	// // Typically, you prefetched these values from the database.
@@ -439,6 +440,16 @@ func main() {
 	// Create the print server
 	//
 	http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+
+	//
+	// Login
+	//
+	http.Handle("/login", authentication.Login)
+
+	//
+	// Validate
+	//
+	http.Handle("/validate", authentication.ValidateToken)
 
 	//
 	//
