@@ -59,7 +59,7 @@ func init() {
 	//
 	//
 	//
-	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateByte)
+	_, err = jwt.ParseRSAPrivateKeyFromPEM(privateByte)
 
 	if err != nil {
 		fmt.Println("Could not parse privatekey")
@@ -68,7 +68,7 @@ func init() {
 	//
 	//
 	//
-	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicByte)
+	_, err := jwt.ParseRSAPublicKeyFromPEM(publicByte)
 
 	if err != nil {
 		fmt.Println("Could not parse publickey")
