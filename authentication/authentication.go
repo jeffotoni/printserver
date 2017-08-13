@@ -160,14 +160,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	token, err := request.ParseFromRequestWithClaims(r, request.OAuth2Extractor, &models.Claim{}, func(token *jwt.Token) (interface{}, error) {
+
+		fmt.Println("here public: ", publicKey)
 		return publicKey, nil
 	})
 
 	if err != nil {
 
+		fmt.Println("Error: ", err)
+
 		switch err.(type) {
 
 		case *jwt.ValidationError:
+
 			vErr := err.(*jwt.ValidationError)
 
 			switch vErr.Errors {
