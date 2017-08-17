@@ -554,7 +554,7 @@ func main() {
 
 	// mux.Handle("/ping2", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing2)))
 
-	mux.Handle("/ping2", HandlerTest(auth0.ValidateTokenNewBoolNew, Ping2))
+	mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, HandlerTest(auth0.ValidateTokenNewBoolNew, Ping2)))
 
 	// tollbooth.LimitFuncHandler(tollbooth.NewLimiter(1, time.Second), HelloHandler)
 
