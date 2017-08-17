@@ -103,6 +103,37 @@ type Message struct {
 	Msg  string `json:msg`
 }
 
+type fn func(w http.ResponseWriter, r *http.Request) bool
+
+//
+//
+//
+func HandlerAuth(handler http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		//if auth(w, r) {
+		if auth0.HandlerValidate(w, r) {
+
+			handler(w, r)
+		}
+	}
+}
+
+//
+//
+//
+func HandlerFuncAuth(auth fn, handler http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if auth(w, r) {
+
+			handler(w, r)
+		}
+	}
+}
+
 // This method is a simplified abstraction
 // so that we can send them to our client
 // when making a request
@@ -227,52 +258,6 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 	//fmt.Println(pong)
 	// nextHandler(w, r)
 
-}
-
-//
-// Testing whether the service is online
-//
-func Ping2(w http.ResponseWriter, req *http.Request) {
-
-	//
-	//
-	//
-	json := `{"msg":"pong2"}`
-
-	//
-	//
-	//
-	pong := []byte(json)
-
-	//
-	//
-	//
-	w.Header().Set(HttpHeaderTitle, HttpHeaderMsg)
-
-	//
-	//
-	//
-	w.Header().Set("X-Custom-Header", "HeaderValue-x83838374774")
-
-	//
-	//
-	//
-	w.Header().Set("Content-Type", "application/json")
-
-	//
-	//
-	//
-	w.WriteHeader(http.StatusOK)
-
-	//
-	//
-	//
-	// fmt.Println(string(pong))
-
-	//
-	//
-	//
-	w.Write(pong)
 }
 
 //
@@ -413,94 +398,6 @@ func Print(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
-func MyMiddlewareAuth0(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-
-	// do some stuff before
-	// next(rw, r)
-	// do some stuff after
-	ok, msg := auth0.ValidateTokenNewBool(rw, r)
-
-	if ok {
-
-		next(rw, r)
-
-	} else {
-
-		auth0.HttpWriteJson(rw, "error", msg, http.StatusAccepted)
-	}
-}
-
-func MyMiddlewarePing(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-
-	// do some stuff before
-	Ping(rw, r)
-	// do some stuff after
-}
-
-//type handler struct{}
-
-type fn func(w http.ResponseWriter, r *http.Request) bool
-
-func HandlerTest(auth fn, handler http.HandlerFunc) http.HandlerFunc {
-
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		if auth(w, r) {
-
-			handler(w, r)
-		}
-	}
-}
-
-// type handler func(w http.ResponseWriter, r *http.Request)
-
-// func HandlerNew(next handler) handler {
-
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next handler) {
-
-// 		next(w, r)
-// 	})
-// }
-
-//[negroni] 2017-08-17T01:56:37-03:00 | 404 | 	 87.308µs | localhost:9001 | POST /ping2
-
-func MyMiddlewarePing2(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) http.Handler {
-
-	// func setupMiddlewares(handler http.Handler) http.Handler {
-
-	limiter := tollbooth.NewLimiter(1, time.Second)
-
-	//limiter.IPLookups = []string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}
-
-	return tollbooth.LimitFuncHandler(limiter, Ping2)
-
-	// do some stuff before
-	//Ping2(rw, r)
-	// do some stuff after
-}
-
-// func makeHandler(
-// 	fn func(
-// 		http.ResponseWriter,
-// 		*http.Request,
-// 		http.HandlerFunc,
-// 	)) http.HandlerFunc {
-// 	return func(
-// 		w http.ResponseWriter,
-// 		r *http.Request,
-// 		next http.HandlerFunc,
-// 	) {
-
-// 		// m := validPath.FindStringSubmatch(r.URL.Path)
-// 		// if m == nil {
-// 		//     http.NotFound(w, r)
-// 		//     return
-// 		// }
-
-// 		fn(w, r, next)
-// 	}
-// }
-
 //
 // start
 //
@@ -516,68 +413,37 @@ func main() {
 	//
 	ShowScreen(cfg)
 
-	// You can create a generic limiter for all your handlers
+	// Creating limiter for all handlers
 	// or one for each handler. Your choice.
-	// This limiter basically says: allow at most 10 request per 1 second.
+	// This limiter basically says: allow at most NewLimiter request per 1 second.
 	limiter := tollbooth.NewLimiter(NewLimiter, time.Second)
 
-	// This is an example on how to limit only GET and POST requests.
+	// Limit only GET and POST requests.
 	limiter.Methods = []string{"GET", "POST"}
 
-	// // You can also limit by specific request headers, containing certain values.
-	// // Typically, you prefetched these values from the database.
-	// limiter.Headers = make(map[string][]string)
-
-	// limiter.Headers["X-Access-Token"] = []string{"xulxx", "383xx"}
-
-	// And finally, you can limit access based on basic auth usernames.
-	// Typically, you prefetched these values from the database as well.
-	// limiter.BasicAuthUsers = []string{"xxx", "jeff", "youx"}
-
 	//
-	// Create a request limiter per handler.
 	//
-	// http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
-
+	//
 	mux := http.NewServeMux()
 
-	// mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+	// We had problem in doing method authentication and limit rate using negroni
+	// mux.Handle("/ping", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing)))
 
-	//mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
+	mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, HandlerFuncAuth(auth0.HandlerValidate, Ping)))
 
-	// mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
-
-	//n := negroni.New()
-	//n.Use(negroni.HandlerFunc(MyMiddleware))
-
-	mux.Handle("/ping", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing)))
-
-	// mux.Handle("/ping2", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing2)))
-
-	mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, HandlerTest(auth0.ValidateTokenNewBoolNew, Ping2)))
-
-	// tollbooth.LimitFuncHandler(tollbooth.NewLimiter(1, time.Second), HelloHandler)
-
-	// mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+	mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, HandlerAuth(Print)))
 
 	//
 	// Off the default mux
+	// Does not need authentication, only user key and token
 	//
 	mux.Handle("/login", tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
 
-	mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateTokenNew))
+	mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateToken))
 
 	nClassic := negroni.Classic()
 
-	//n := negroni.New()
-	// nClassic.Use(negroni.HandlerFunc(auth0.ValidateToken))
-	//nClassic.Use(negroni.HandlerFunc(Ping))
-	// negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping))
-	//nClassic.new(negroni.HandlerFunc(Ping))
-
 	nClassic.UseHandler(mux)
-
-	// http.HandleFunc("/ping", Ping)
 
 	//
 	// Create a request limiter per handler.
