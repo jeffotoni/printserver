@@ -56,7 +56,7 @@ func init() {
 
 	if err != nil {
 
-		HttpWriteJson(w, "error", "Private key not found!", http.StatusUnauthorized)
+		WriteJson("error", "Private key not found!", http.StatusUnauthorized)
 		return
 	}
 
@@ -67,7 +67,7 @@ func init() {
 
 	if errx != nil {
 
-		HttpWriteJson(w, "error", "Public key not found!", http.StatusUnauthorized)
+		WriteJson("error", "Public key not found!", http.StatusUnauthorized)
 		return
 	}
 
@@ -78,7 +78,7 @@ func init() {
 
 	if err != nil {
 
-		HttpWriteJson(w, "error", "Could not parse privatekey!", http.StatusUnauthorized)
+		WriteJson("error", "Could not parse privatekey!", http.StatusUnauthorized)
 		return
 	}
 
@@ -89,7 +89,7 @@ func init() {
 
 	if err != nil {
 
-		HttpWriteJson(w, "error", "ould not parse publickey!", http.StatusUnauthorized)
+		WriteJson("error", "ould not parse publickey!", http.StatusUnauthorized)
 		return
 	}
 }
@@ -434,6 +434,21 @@ func ValidateToken(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println("User: ", claims.User)
 
 	HttpWriteJson(w, "success", "Your token it's ok ["+claims.User+"]", http.StatusOK)
+}
+
+func WriteJson(Status string, Msg string, httpStatus int) {
+
+	msgJsonStruct := &JsonMsg{Status, Msg}
+
+	msgJson, errj := json.Marshal(msgJsonStruct)
+
+	if errj != nil {
+
+		fmt.Println(`{"status":"error","msg":"We could not generate the json error!"}`)
+		return
+	}
+
+	fmt.Println(msgJson)
 }
 
 func HttpWriteJson(w http.ResponseWriter, Status string, Msg string, httpStatus int) {
