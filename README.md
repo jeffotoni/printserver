@@ -17,9 +17,12 @@ The good thing is that we will send everything encrypted, but we can choose to e
 
 # Packages
 
-go get "github.com/didip/tollbooth"
+go get -u github.com/didip/tollbooth
 
 go get -u github.com/dgrijalva/jwt-go
+
+go get -u github.com/codegangsta/negroni
+
 
 # Install
 
@@ -41,20 +44,37 @@ func main() {
 	//
 	ShowScreen(cfg)
 
-	// You can create a generic limiter for all your handlers
+	// Creating limiter for all handlers
 	// or one for each handler. Your choice.
-	// This limiter basically says: allow at most 1 request per 1 second.
-	limiter := tollbooth.NewLimiter(5, time.Second)
+	// This limiter basically says: allow at most NewLimiter request per 1 second.
+	limiter := tollbooth.NewLimiter(NewLimiter, time.Second)
+
+	// Limit only GET and POST requests.
+	limiter.Methods = []string{"GET", "POST"}
 
 	//
-	// Create a request limiter per handler.
 	//
-	http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+	//
+	mux := http.NewServeMux()
+
+	// We had problem in doing method authentication and limit rate using negroni
+	// mux.Handle("/ping", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing)))
+
+	mux.Handle(HandlerPing, tollbooth.LimitFuncHandler(limiter, HandlerFuncAuth(auth0.HandlerValidate, Ping)))
+
+	mux.Handle(HandlerV1Print, tollbooth.LimitFuncHandler(limiter, HandlerAuth(Print)))
 
 	//
-	// Create the print server
+	// Off the default mux
+	// Does not need authentication, only user key and token
 	//
-	http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+	mux.Handle(HandlerOauthToken, tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
+
+	// mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateToken))
+
+	nClassic := negroni.Classic()
+
+	nClassic.UseHandler(mux)
 
 	//
 	//
@@ -63,9 +83,9 @@ func main() {
 
 		Addr: ":" + cfg.ServerPort,
 
-		// Handler:        myHandlerHere,
-		ReadTimeout:    30 * time.Second,
-		WriteTimeout:   20 * time.Second,
+		Handler: nClassic,
+		//ReadTimeout:    30 * time.Second,
+		//WriteTimeout:   20 * time.Second,
 		MaxHeaderBytes: 1 << 23, // Size accepted by package
 	}
 
