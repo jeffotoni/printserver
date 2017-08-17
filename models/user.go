@@ -13,12 +13,22 @@
 package models
 
 //
-// jwt
+// User structure
 //
 type User struct {
-	Login string `json:"user"`
 
+	//
+	//
+	//
+	Login string `json:"login"`
+
+	//
+	//
+	//
 	Password string `json:"password,omitempty"`
 
+	//
+	//
+	//
 	Role string `json:"role"`
 }
