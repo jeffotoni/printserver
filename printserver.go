@@ -174,7 +174,7 @@ func ShowScreen(cfg *Configs) {
 	//
 	// Basic Authentication
 	//
-	oauthToken := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/oauth/token"
+	oauthToken := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerOauthToken
 
 	//
 	//
@@ -184,12 +184,12 @@ func ShowScreen(cfg *Configs) {
 	//
 	//
 	//
-	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/ping"
+	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerPing
 
 	//
 	//
 	//
-	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/v1/print"
+	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerV1Print
 
 	//
 	//
