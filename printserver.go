@@ -37,6 +37,7 @@ const (
 	HttpHeaderTitle = `PrintServer`
 	HttpHeaderMsg   = `Good Server, thank you.`
 	NewLimiter      = 250
+	SizeByteAllowed = 1 << 23
 
 	HandlerOauthToken = "/oauth/token"
 	HandlerV1Print    = "/v1/print"
@@ -179,11 +180,6 @@ func ShowScreen(cfg *Configs) {
 	//
 	//
 	//
-	// validate := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/validate"
-
-	//
-	//
-	//
 	ping := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerPing
 
 	//
@@ -194,9 +190,7 @@ func ShowScreen(cfg *Configs) {
 	//
 	//
 	//
-	sizeBytes := 1 << 23
-
-	sizeMb := (sizeBytes / 1024) / 1024
+	sizeMb := (SizeByteAllowed / 1024) / 1024
 
 	//
 	// Showing on the screen
@@ -209,7 +203,7 @@ func ShowScreen(cfg *Configs) {
 	fmt.Println("Max bytes:", sizeMb, "Mb")
 
 	//
-	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
+	// Maximum NewLimiter requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
 	//
 	fmt.Println("Requests ", NewLimiter, "per 1 second")
 }
@@ -433,17 +427,17 @@ func main() {
 	// We had problem in doing method authentication and limit rate using negroni
 	// mux.Handle("/ping", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing)))
 
-	mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, HandlerFuncAuth(auth0.HandlerValidate, Ping)))
+	mux.Handle(HandlerPing, tollbooth.LimitFuncHandler(limiter, HandlerFuncAuth(auth0.HandlerValidate, Ping)))
 
-	mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, HandlerAuth(Print)))
+	mux.Handle(HandlerV1Print, tollbooth.LimitFuncHandler(limiter, HandlerAuth(Print)))
 
 	//
 	// Off the default mux
 	// Does not need authentication, only user key and token
 	//
-	mux.Handle("/login", tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
+	mux.Handle(HandlerOauthToken, tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
 
-	mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateToken))
+	// mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateToken))
 
 	nClassic := negroni.Classic()
 
