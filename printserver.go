@@ -246,25 +246,24 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 	//
 	//
 	//
-	// fmt.Println(string(pong))
-
-	//
-	//
-	//
 	w.Write(pong)
-
-	//fmt.Println(pong)
-	// nextHandler(w, r)
-
 }
 
 //
-//
+// Zebra printer, the printer is networked, or the local
+// machine is connected to the printer.
+// The program will send a file to printer
 //
 func Print(w http.ResponseWriter, req *http.Request) {
 
+	//
+	//
+	//
 	var json_msg string
 
+	//
+	//
+	//
 	var HttpMsgHeader int
 
 	//
