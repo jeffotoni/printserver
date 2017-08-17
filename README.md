@@ -30,6 +30,16 @@ $ go build printserver.go
 
 $ sudo cp printserver /usr/bin
 
+# Generate the keys
+
+```sh
+
+$ openssl genrsa -out private.rsa 1024
+
+$ openssl rsa -in private.rsa -pubout > public.rsa.pub
+
+```
+
 ```go
 
 func main() {
