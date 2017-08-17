@@ -109,7 +109,7 @@ func GenerateJWT(model models.User) string {
 		StandardClaims: jwt.StandardClaims{
 
 			// Expires in 8 hours
-			ExpiresAt: time.Now().Add(time.Hour * ExpirationHours * DayExpiration).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 24 * 14).Unix(),
 			Issuer:    ProjectTitle,
 		},
 	}
