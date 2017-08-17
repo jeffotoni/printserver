@@ -40,7 +40,7 @@ const (
 	HttpError          = 500
 	HttpHeaderTitle    = `PrintServer`
 	HttpHeaderMsg      = `Good Server, thank you.`
-	NewLimiter         = 300
+	NewLimiter         = 20
 )
 
 //
