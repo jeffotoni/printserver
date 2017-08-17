@@ -32,8 +32,9 @@ var (
 	pathPrivate = "./private.rsa"
 	pathPublic  = "./public.rsa.pub"
 
-	ProjectTitle = "printserver zebra"
-	Expiration   = 24 * 12 // Hours and Day
+	ProjectTitle    = "printserver zebra"
+	ExpirationHours = 24 // Hours
+	DayExpiration   = 12 // Day
 )
 
 //
@@ -108,7 +109,7 @@ func GenerateJWT(model models.User) string {
 		StandardClaims: jwt.StandardClaims{
 
 			// Expires in 8 hours
-			ExpiresAt: time.Now().Add(time.Hour * Expiration).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * ExpirationHours * DayExpiration).Unix(),
 			Issuer:    ProjectTitle,
 		},
 	}
