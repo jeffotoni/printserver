@@ -437,6 +437,25 @@ func MyMiddlewarePing(rw http.ResponseWriter, r *http.Request, next http.Handler
 	// do some stuff after
 }
 
+//type handler struct{}
+
+func HandlerTest(handler http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r)
+	}
+}
+
+// type handler func(w http.ResponseWriter, r *http.Request)
+
+// func HandlerNew(next handler) handler {
+
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next handler) {
+
+// 		next(w, r)
+// 	})
+// }
+
 //[negroni] 2017-08-17T01:56:37-03:00 | 404 | 	 87.308µs | localhost:9001 | POST /ping2
 
 func MyMiddlewarePing2(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) http.Handler {
@@ -529,7 +548,7 @@ func main() {
 
 	// mux.Handle("/ping2", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing2)))
 
-	//mux.Handle("/ping2")
+	mux.HandleFunc("/ping2", HandlerTest(Ping2))
 
 	// tollbooth.LimitFuncHandler(tollbooth.NewLimiter(1, time.Second), HelloHandler)
 
