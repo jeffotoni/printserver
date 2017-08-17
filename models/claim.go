@@ -26,7 +26,7 @@ type Claim struct {
 	//
 	//
 	//
-	Login string `json:"login"`
+	User string `json:"user"`
 
 	//
 	//

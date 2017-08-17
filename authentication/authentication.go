@@ -31,6 +31,9 @@ var (
 
 	pathPrivate = "./private.rsa"
 	pathPublic  = "./public.rsa.pub"
+
+	ProjectTitle = "printserver zebra"
+	Expiration   = 24 * 12 // Hours and Day
 )
 
 //
@@ -52,7 +55,9 @@ func init() {
 	privateByte, err := ioutil.ReadFile(pathPrivate)
 
 	if err != nil {
-		fmt.Println("Private key not found!")
+
+		HttpWriteJson(w, "error", "Private key not found!", http.StatusUnauthorized)
+		return
 	}
 
 	//
@@ -61,7 +66,9 @@ func init() {
 	publicByte, errx := ioutil.ReadFile(pathPublic)
 
 	if errx != nil {
-		fmt.Println("Public key not found!")
+
+		HttpWriteJson(w, "error", "Public key not found!", http.StatusUnauthorized)
+		return
 	}
 
 	//
@@ -70,7 +77,9 @@ func init() {
 	privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateByte)
 
 	if err != nil {
-		fmt.Println("Could not parse privatekey")
+
+		HttpWriteJson(w, "error", "Could not parse privatekey!", http.StatusUnauthorized)
+		return
 	}
 
 	//
@@ -79,7 +88,9 @@ func init() {
 	publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicByte)
 
 	if err != nil {
-		fmt.Println("Could not parse publickey: ", publicKey)
+
+		HttpWriteJson(w, "error", "ould not parse publickey!", http.StatusUnauthorized)
+		return
 	}
 }
 
@@ -97,11 +108,14 @@ func GenerateJWT(model models.User) string {
 		StandardClaims: jwt.StandardClaims{
 
 			// Expires in 8 hours
-			ExpiresAt: time.Now().Add(time.Minute * 40).Unix(),
-			Issuer:    "printserver zebra",
+			ExpiresAt: time.Now().Add(time.Minute * Expiration).Unix(),
+			Issuer:    ProjectTitle,
 		},
 	}
 
+	//
+	//
+	//
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	//
