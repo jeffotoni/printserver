@@ -26,7 +26,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	// "reflect"
+	"reflect"
 	"time"
 )
 
@@ -208,6 +208,17 @@ func ShowScreen(cfg *Configs) {
 	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
 	//
 	fmt.Println("Requests ", NewLimiter, "per 1 second")
+
+	//
+	// list route
+	//
+
+	httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
+
+	finList := httpList.FieldByIndex([]int{1})
+
+	fmt.Println(finList)
+
 }
 
 //
@@ -444,36 +455,6 @@ func main() {
 	nClassic := negroni.Classic()
 
 	nClassic.UseHandler(mux)
-
-	//
-	// Create a request limiter per handler.
-	//
-	//http.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
-
-	//
-	// Create the print server
-	//
-	//http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
-
-	//
-	// Login
-	//
-	//http.HandleFunc("/login", auth0.Login)
-
-	//
-	// Validate
-	//
-	// http.HandleFunc("/validate", auth0.ValidateToken)
-
-	// http.Handle("/ping", negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping)))
-
-	//
-	// list route
-	//
-
-	// httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
-	// finList := httpList.FieldByIndex([]int{1})
-	// fmt.Println(finList)
 
 	//
 	//
