@@ -26,7 +26,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"reflect"
+	// "reflect"
 	"time"
 )
 
@@ -34,23 +34,18 @@ import (
 //
 //
 const (
-	HttpSucess         = 200
-	HttpErrorLimit     = 429
-	HttpErrorNoContent = 204
-	HttpError          = 500
-	HttpHeaderTitle    = `PrintServer`
-	HttpHeaderMsg      = `Good Server, thank you.`
-	NewLimiter         = 20
+	HttpHeaderTitle = `PrintServer`
+	HttpHeaderMsg   = `Good Server, thank you.`
+	NewLimiter      = 250
 )
 
 //
 //
 //
 var (
-	err           error
-	returns       string
-	confServer    *http.Server
-	AUTHORIZATION = `bc9c154ebabc6f3da724e9x5fef78765`
+	err        error
+	returns    string
+	confServer *http.Server
 )
 
 //''
@@ -213,11 +208,11 @@ func ShowScreen(cfg *Configs) {
 	// list route
 	//
 
-	httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
 
-	finList := httpList.FieldByIndex([]int{1})
+	// finList := httpList.FieldByIndex([]int{51})
 
-	fmt.Println(finList)
+	// fmt.Println(finList)
 
 }
 
@@ -299,11 +294,11 @@ func Print(w http.ResponseWriter, req *http.Request) {
 
 			json_msg = `{"msg":"error No Content!"}`
 
-			HttpMsgHeader = HttpErrorNoContent
+			HttpMsgHeader = http.StatusBadRequest
 
 		} else {
 
-			HttpMsgHeader = HttpSucess
+			HttpMsgHeader = http.StatusOK
 
 			//
 			//
