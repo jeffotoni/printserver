@@ -363,6 +363,58 @@ func ValidateToken(w http.ResponseWriter, r *http.Request, handlerNext http.Hand
 	handlerNext(w, r)
 }
 
+//type fn func(w http.ResponseWriter, r *http.Request)
+
+//
+// Validate Token
+//
+func ValidateTokenNewBoolNew(w http.ResponseWriter, r *http.Request) bool {
+
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+
+	if len(auth) != 2 || auth[0] != "Bearer" {
+
+		//http.Error(w, "authorization failed", http.StatusUnauthorized)
+		HttpWriteJson(w, "error", http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return false
+	}
+
+	token := strings.Trim(auth[1], " ")
+	strings.TrimSpace(token)
+
+	// star
+	parsedToken, err := jwt.ParseWithClaims(token, &models.Claim{}, func(*jwt.Token) (interface{}, error) {
+
+		return publicKey, nil
+
+	})
+
+	if err != nil || !parsedToken.Valid {
+
+		//w.WriteHeader(http.StatusAccepted)
+		//fmt.Fprintln(w, "Your token has expired!")
+		HttpWriteJson(w, "error", "Your token has expired!", http.StatusAccepted)
+		return false
+
+	}
+
+	claims, ok := parsedToken.Claims.(*models.Claim)
+
+	if !ok || claims.User != "ADMIN" {
+
+		//w.WriteHeader(http.StatusAccepted)
+		//HttpWriteJson(w, "error", "There's something strange about your token!", http.StatusAccepted)
+		fmt.Fprintln(w, "There's something strange about your token")
+		return false
+	}
+
+	// fmt.Println("User: ", claims.User)
+
+	//HttpWriteJson(w, "success", "Your token it's ok ["+claims.User+"]", http.StatusOK)
+	//func2(w, r)
+	return true
+}
+
 //
 // Validate Token
 //
