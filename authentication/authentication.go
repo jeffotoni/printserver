@@ -4,16 +4,12 @@
 * The printServer will receive a cryptographic POST containing
 * the Zpl content so that the printer can print.
 *
-* @package     models
+* @package     authentication
 * @author      @jeffotoni
 * @size        11/08/2017
 *
  */
 
-//
-// openssl genrsa -out private.rsa 1024
-// openssl rsa -in private.rsa -pubout > public.rsa.pub
-//
 package authentication
 
 import (
@@ -22,11 +18,9 @@ import (
 	"encoding/json"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
-	// "github.com/dgrijalva/jwt-go/request"
 	"github.com/jeffotoni/printserver/models"
 	"io/ioutil"
 	"net/http"
-	// "os"
 	"strings"
 	"time"
 )
@@ -39,7 +33,7 @@ var (
 	pathPublic  = "./public.rsa.pub"
 )
 
-//''
+//
 // Structure of our server configurations
 //
 type JsonMsg struct {
@@ -313,6 +307,21 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	HttpWriteJson(w, "sucess", http.StatusText(http.StatusOK), http.StatusOK)
 
 	defer r.Body.Close()
+
+	/**
+
+	{
+	  "accessToken": "39a3099b45634f6eb511991fbbe83752_v2",
+	  "access_token": "39a3099b45634f6eb511991fbbe83752_v2",
+	  "expires_in": "2026-09-14",
+	  "refreshToken": "1defad3474a8423f87a04adc588e7c7b_v2",
+	  "refresh_token": "1defad3474a8423f87a04adc588e7c7b_v2",
+	  "scope": "RECEIVE_FUNDS,REFUND,MANAGE_ACCOUNT_INFO",
+	  "moipAccount": {
+	    "id": "MPA-SVOAZT7WWHGB"
+	  }
+
+	*/
 }
 
 //

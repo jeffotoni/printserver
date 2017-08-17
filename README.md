@@ -40,6 +40,8 @@ $ openssl rsa -in private.rsa -pubout > public.rsa.pub
 
 ```
 
+# Main function
+
 ```go
 
 func main() {
