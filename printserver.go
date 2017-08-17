@@ -413,6 +413,69 @@ func Print(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
+func MyMiddlewareAuth0(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+	// do some stuff before
+	// next(rw, r)
+	// do some stuff after
+	ok, msg := auth0.ValidateTokenNewBool(rw, r)
+
+	if ok {
+
+		next(rw, r)
+
+	} else {
+
+		auth0.HttpWriteJson(rw, "error", msg, http.StatusAccepted)
+	}
+}
+
+func MyMiddlewarePing(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+
+	// do some stuff before
+	Ping(rw, r)
+	// do some stuff after
+}
+
+//[negroni] 2017-08-17T01:56:37-03:00 | 404 | 	 87.308µs | localhost:9001 | POST /ping2
+
+func MyMiddlewarePing2(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) http.Handler {
+
+	// func setupMiddlewares(handler http.Handler) http.Handler {
+
+	limiter := tollbooth.NewLimiter(1, time.Second)
+
+	//limiter.IPLookups = []string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}
+
+	return tollbooth.LimitFuncHandler(limiter, Ping2)
+
+	// do some stuff before
+	//Ping2(rw, r)
+	// do some stuff after
+}
+
+// func makeHandler(
+// 	fn func(
+// 		http.ResponseWriter,
+// 		*http.Request,
+// 		http.HandlerFunc,
+// 	)) http.HandlerFunc {
+// 	return func(
+// 		w http.ResponseWriter,
+// 		r *http.Request,
+// 		next http.HandlerFunc,
+// 	) {
+
+// 		// m := validPath.FindStringSubmatch(r.URL.Path)
+// 		// if m == nil {
+// 		//     http.NotFound(w, r)
+// 		//     return
+// 		// }
+
+// 		fn(w, r, next)
+// 	}
+// }
+
 //
 // start
 //
@@ -453,25 +516,41 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+	// mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
 
-	mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
+	//mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
 
-	mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
-
-	nClassic := negroni.Classic()
+	// mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
 
 	//n := negroni.New()
-	nClassic.Use(negroni.HandlerFunc(auth0.ValidateToken))
-	//nClassic.Use(negroni.HandlerFunc(Ping))
-	// negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping))
+	//n.Use(negroni.HandlerFunc(MyMiddleware))
 
-	nClassic.UseHandler(mux)
+	mux.Handle("/ping", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing)))
+
+	// mux.Handle("/ping2", negroni.New(negroni.HandlerFunc(MyMiddlewareAuth0), negroni.HandlerFunc(MyMiddlewarePing2)))
+
+	//mux.Handle("/ping2")
+
+	// tollbooth.LimitFuncHandler(tollbooth.NewLimiter(1, time.Second), HelloHandler)
+
+	// mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
 
 	//
 	// Off the default mux
 	//
-	http.Handle("/login", tollbooth.LimitFuncHandler(limiter, auth0.Login))
+	mux.Handle("/login", tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
+
+	mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateTokenNew))
+
+	nClassic := negroni.Classic()
+
+	//n := negroni.New()
+	// nClassic.Use(negroni.HandlerFunc(auth0.ValidateToken))
+	//nClassic.Use(negroni.HandlerFunc(Ping))
+	// negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping))
+	//nClassic.new(negroni.HandlerFunc(Ping))
+
+	nClassic.UseHandler(mux)
 
 	// http.HandleFunc("/ping", Ping)
 

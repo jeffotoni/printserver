@@ -18,6 +18,7 @@ package authentication
 
 import (
 	"crypto/rsa"
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -25,7 +26,7 @@ import (
 	"github.com/jeffotoni/printserver/models"
 	"io/ioutil"
 	"net/http"
-	"os"
+	// "os"
 	"strings"
 	"time"
 )
@@ -98,11 +99,11 @@ func GenerateJWT(model models.User) string {
 	//
 	claims := models.Claim{
 
-		User: model.User,
+		User: model.Login,
 		StandardClaims: jwt.StandardClaims{
 
 			// Expires in 8 hours
-			ExpiresAt: time.Now().Add(time.Minute * 5).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 40).Unix(),
 			Issuer:    "printserver zebra",
 		},
 	}
@@ -126,43 +127,12 @@ func GenerateJWT(model models.User) string {
 	return tokenString
 }
 
-//
-// login e password default
-//
-func Login(w http.ResponseWriter, r *http.Request) {
-
-	//
-	// Authorization Basic
-	// $auth = self::$accessToken . ":" . self::$accessKey;
-	// 'Authorization: Basic ' . base64_encode($auth)
-	//
-	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-
-	http.Error(w, "auth: "+auth[1], http.StatusUnauthorized)
-
-	if len(auth) != 2 || auth[0] != "Basic" {
-
-		http.Error(w, "authorization failed", http.StatusUnauthorized)
-		return
-	}
-
-	token := strings.Trim(auth[1], " ")
-	strings.TrimSpace(token)
-
-	fmt.Println(token)
-
-	os.Exit(1)
-	//
-	// read Body
-	//
-	byteBody := r.Body
-
-	defer r.Body.Close()
+func LoginJson(w http.ResponseWriter, r *http.Request) {
 
 	//
 	// Validating json if correct
 	//
-	bodyJson, _ := ioutil.ReadAll(byteBody)
+	bodyJson, _ := ioutil.ReadAll(r.Body)
 
 	//
 	// Looking for keys in the first and last position
@@ -215,7 +185,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(bodyJson, &model)
 
 	fmt.Println("Err: ", err)
-	fmt.Println(model.User)
+	fmt.Println(model.Login)
 
 	if err != nil {
 
@@ -237,7 +207,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if model.User == "jeff" && model.Password == "1234" {
+	if model.Login == "jeff" && model.Password == "1234" {
 
 		model.Password = ""
 		model.Role = "admin"
@@ -264,6 +234,88 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 //
+// login e password default
+//
+func LoginBasic(w http.ResponseWriter, r *http.Request) {
+
+	//
+	// Authorization Basic base64 Encode
+	//
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+
+	if len(auth) != 2 || auth[0] != "Basic" {
+
+		HttpWriteJson(w, "error", http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	tokenBase64 := strings.Trim(auth[1], " ")
+	tokenBase64 = strings.TrimSpace(tokenBase64)
+
+	//
+	// token 64
+	//
+	authToken64 := strings.SplitN(tokenBase64, ":", 2)
+
+	if len(authToken64) != 2 || authToken64[0] == "" || authToken64[1] == "" {
+
+		HttpWriteJson(w, "error", "token base 64 invalid!", http.StatusUnauthorized)
+		return
+	}
+
+	// fmt.Println(authToken64[0])
+	// fmt.Println(authToken64[1])
+
+	tokenUserEnc := authToken64[0]
+	keyUserEnc := authToken64[1]
+
+	tokenUserDecode, _ := b64.StdEncoding.DecodeString(tokenUserEnc)
+	//fmt.Println(string(tokenUserDecode))
+
+	keyUserDec, _ := b64.StdEncoding.DecodeString(keyUserEnc)
+	//fmt.Println(string(keyUserDec))
+
+	tokenUserDecodeS := strings.ToUpper(string(tokenUserDecode))
+	keyUserDecS := strings.ToUpper(string(keyUserDec))
+
+	if tokenUserDecodeS == "ADMIN" && keyUserDecS == "12345" {
+
+		var model models.User
+
+		model.Login = tokenUserDecodeS
+		// model.Password = keyUserDec
+
+		model.Password = ""
+		model.Role = "admin"
+
+		token := GenerateJWT(model)
+
+		result := models.ResponseToken{token}
+		jsonResult, err := json.Marshal(result)
+
+		if err != nil {
+
+			// fmt.Fprintln(w, "Error generating json!")
+			HttpWriteJson(w, "error", "json.Marshal error generating!", http.StatusUnauthorized)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResult)
+
+	} else {
+
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintln(w, "Invalid user or key!")
+	}
+
+	HttpWriteJson(w, "sucess", http.StatusText(http.StatusOK), http.StatusOK)
+
+	defer r.Body.Close()
+}
+
+//
 // Validate Token
 //
 func ValidateToken(w http.ResponseWriter, r *http.Request, handlerNext http.HandlerFunc) {
@@ -272,7 +324,8 @@ func ValidateToken(w http.ResponseWriter, r *http.Request, handlerNext http.Hand
 
 	if len(auth) != 2 || auth[0] != "Bearer" {
 
-		http.Error(w, "authorization failed", http.StatusUnauthorized)
+		//http.Error(w, "authorization failed", http.StatusUnauthorized)
+		HttpWriteJson(w, "error", http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
@@ -288,8 +341,9 @@ func ValidateToken(w http.ResponseWriter, r *http.Request, handlerNext http.Hand
 
 	if err != nil || !parsedToken.Valid {
 
-		w.WriteHeader(http.StatusAccepted)
-		fmt.Fprintln(w, "Your token has expired!")
+		//w.WriteHeader(http.StatusAccepted)
+		//fmt.Fprintln(w, "Your token has expired!")
+		HttpWriteJson(w, "error", "Your token has expired!", http.StatusAccepted)
 		return
 
 	}
@@ -298,107 +352,129 @@ func ValidateToken(w http.ResponseWriter, r *http.Request, handlerNext http.Hand
 
 	if !ok {
 
-		w.WriteHeader(http.StatusAccepted)
-		fmt.Fprintln(w, "There's something strange about your token")
+		//w.WriteHeader(http.StatusAccepted)
+		HttpWriteJson(w, "error", "There's something strange about your token "+claims.User, http.StatusAccepted)
+		//fmt.Fprintln(w, "There's something strange about your token")
 		return
 	}
 
 	fmt.Println("User: ", claims.User)
 
 	handlerNext(w, r)
-
-	//return claims.User, nil
-	// fmt.Println("err: ", err)
-	// fmt.Println("token: ", parsedToken)
-
-	// os.Exit(1)
-
-	//end
-
-	// if token, err := request.ParseFromRequest(r, request.OAuth2Extractor, keyLookupFunc2); err == nil {
-
-	// 	claims := token.Claims.(jwt.MapClaims)
-	// 	fmt.Printf("Token for user %v expires %v", claims["user"], claims["exp"])
-
-	// } else if err != nil {
-
-	// 	fmt.Println("Error: ", err)
-
-	// 	switch err.(type) {
-
-	// 	case *jwt.ValidationError:
-
-	// 		vErr := err.(*jwt.ValidationError)
-
-	// 		switch vErr.Errors {
-
-	// 		case jwt.ValidationErrorExpired:
-	// 			fmt.Fprintln(w, "Your token has expired!")
-	// 			return
-	// 		case jwt.ValidationErrorSignatureInvalid:
-	// 			fmt.Fprintln(w, "Token signature does not match!")
-	// 			return
-	// 		default:
-	// 			fmt.Fprintln(w, "Your token is invalid!")
-	// 			return
-	// 		}
-	// 	default:
-	// 		fmt.Fprintln(w, "Your token is invalid!")
-	// 		return
-	// 	}
-	// }
-
-	// if token.Valid {
-
-	// 	w.WriteHeader(http.StatusAccepted)
-	// 	fmt.Fprintln(w, "Welcome to the system!")
-
-	// } else {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	fmt.Fprintln(w, "Your token is invalid!")
-	// }
 }
 
-// func (a *JWTAuth) ValidateToken(token string) (string, error) {
+//
+// Validate Token
+//
+func ValidateTokenNewBool(w http.ResponseWriter, r *http.Request) (bool, string) {
 
-// 	parsedToken, err := jwt.ParseWithClaims(token, &tokenClaim{}, func(*jwt.Token) (interface{}, error) {
-// 		return a.publicKey, nil
-// 	})
-// 	if err != nil || !parsedToken.Valid {
-// 		return "", ErrPermissionDenied
-// 	}
-// 	claims, ok := parsedToken.Claims.(*tokenClaim)
-// 	if !ok {
-// 		return "", ErrPermissionDenied
-// 	}
-// 	return claims.Email, nil
-// }
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 
-// func New(privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey) Auth {
-// 	return &JWTAuth{privateKey: privateKey, publicKey: publicKey}
-// }
+	if len(auth) != 2 || auth[0] != "Bearer" {
 
-func keyLookupFunc2(*jwt.Token) (interface{}, error) {
+		//http.Error(w, "authorization failed", http.StatusUnauthorized)
+		// HttpWriteJson(w, "error", http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return false, http.StatusText(http.StatusUnauthorized)
+	}
 
-	fmt.Println("here public: ", publicKey)
-	return publicKey, nil
+	token := strings.Trim(auth[1], " ")
+	strings.TrimSpace(token)
 
+	// star
+	parsedToken, err := jwt.ParseWithClaims(token, &models.Claim{}, func(*jwt.Token) (interface{}, error) {
+
+		return publicKey, nil
+
+	})
+
+	if err != nil || !parsedToken.Valid {
+
+		//w.WriteHeader(http.StatusAccepted)
+		//fmt.Fprintln(w, "Your token has expired!")
+		//HttpWriteJson(w, "error", "Your token has expired!", http.StatusAccepted)
+		return false, "Your token has expired!"
+
+	}
+
+	claims, ok := parsedToken.Claims.(*models.Claim)
+
+	if !ok || claims.User != "ADMIN" {
+
+		//w.WriteHeader(http.StatusAccepted)
+		//HttpWriteJson(w, "error", "There's something strange about your token!", http.StatusAccepted)
+		//fmt.Fprintln(w, "There's something strange about your token")
+		return false, "There's something strange about your token!"
+	}
+
+	// fmt.Println("User: ", claims.User)
+
+	// HttpWriteJson(w, "success", "Your token it's ok ["+claims.User+"]", http.StatusOK)
+	return true, "success"
 }
 
-// func keyLookupFunc(*Token) (interface{}, error) {
+//
+// Validate Token
+//
+func ValidateTokenNew(w http.ResponseWriter, r *http.Request) {
 
-// 	// Don't forget to validate the alg is what you expect:
-// 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 
-// 		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-// 	}
+	if len(auth) != 2 || auth[0] != "Bearer" {
 
-// 	// Look up key
-// 	key, err := lookupPublicKey(token.Header["kid"])
-// 	if err != nil {
-// 		return nil, err
-// 	}
+		//http.Error(w, "authorization failed", http.StatusUnauthorized)
+		HttpWriteJson(w, "error", http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
 
-// 	// Unpack key from PEM encoded PKCS8
-// 	return jwt.ParseRSAPublicKeyFromPEM(key)
-// }
+	token := strings.Trim(auth[1], " ")
+	strings.TrimSpace(token)
+
+	// star
+	parsedToken, err := jwt.ParseWithClaims(token, &models.Claim{}, func(*jwt.Token) (interface{}, error) {
+
+		return publicKey, nil
+
+	})
+
+	if err != nil || !parsedToken.Valid {
+
+		//w.WriteHeader(http.StatusAccepted)
+		//fmt.Fprintln(w, "Your token has expired!")
+		HttpWriteJson(w, "error", "Your token has expired!", http.StatusAccepted)
+		return
+
+	}
+
+	claims, ok := parsedToken.Claims.(*models.Claim)
+
+	if !ok || claims.User != "ADMIN" {
+
+		//w.WriteHeader(http.StatusAccepted)
+		HttpWriteJson(w, "error", "There's something strange about your token!", http.StatusAccepted)
+		//fmt.Fprintln(w, "There's something strange about your token")
+		return
+	}
+
+	// fmt.Println("User: ", claims.User)
+
+	HttpWriteJson(w, "success", "Your token it's ok ["+claims.User+"]", http.StatusOK)
+}
+
+func HttpWriteJson(w http.ResponseWriter, Status string, Msg string, httpStatus int) {
+
+	msgJsonStruct := &JsonMsg{Status, Msg}
+
+	msgJson, errj := json.Marshal(msgJsonStruct)
+
+	if errj != nil {
+
+		fmt.Fprintln(w, `{"status":"error","msg":"We could not generate the json error!"}`)
+		return
+	}
+
+	w.WriteHeader(httpStatus)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.Write(msgJson)
+}

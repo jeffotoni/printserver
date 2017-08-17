@@ -37,6 +37,7 @@ func main() {
 		fmt.Println("Passes the token as argument!")
 	}
 
+	// curl -X POST -H "Content-Type: application/json" -H "Authorization: Basic YWRtaW4=:MTIzNDU=" localhost:9001/login
 	// os.Exit(1)
 
 	endPoint1 := "http://localhost:9001/ping"
