@@ -16,5 +16,9 @@ package models
 // jwt
 //
 type ResponseToken struct {
+
+	//
+	// token
+	//
 	Token string `json:"token"`
 }

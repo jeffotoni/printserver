@@ -39,8 +39,8 @@ const (
 	NewLimiter      = 250
 	SizeByteAllowed = 1 << 23
 
-	HandlerOauthToken = "/oauth/token"
-	HandlerV1Print    = "/v1/print"
+	HandlerOauthToken = "/token"
+	HandlerV1Print    = "/print"
 	HandlerPing       = "/ping"
 )
 

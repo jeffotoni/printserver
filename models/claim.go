@@ -12,13 +12,24 @@
 
 package models
 
+//
+// Claim structure, where we will use
+// to validate our token with jwt
+//
 import "github.com/dgrijalva/jwt-go"
 
 //
 // jwt
 //
 type Claim struct {
-	User string `json:"user"`
 
+	//
+	//
+	//
+	Login string `json:"login"`
+
+	//
+	//
+	//
 	jwt.StandardClaims
 }
