@@ -37,6 +37,10 @@ const (
 	HttpHeaderTitle = `PrintServer`
 	HttpHeaderMsg   = `Good Server, thank you.`
 	NewLimiter      = 250
+
+	HandlerOauthToken = "/oauth/token"
+	HandlerV1Print    = "/v1/print"
+	HandlerPing       = "/ping"
 )
 
 //
@@ -61,6 +65,20 @@ type Configs struct {
 	ServerHost string `json:"serverhost"`
 }
 
+// This method Message is to return our messages
+// in json, ie the client will
+// receive messages in json format
+type Message struct {
+	Code int    `json:code`
+	Msg  string `json:msg`
+}
+
+//
+// Type responsible for defining a function that returns boolean
+//
+type fn func(w http.ResponseWriter, r *http.Request) bool
+
+//
 // This method ConfigJson sets up our
 // server variables from our struct
 //
@@ -90,18 +108,10 @@ func Config() *Configs {
 	return &objason
 }
 
-// This method Message is to return our messages
-// in json, ie the client will
-// receive messages in json format
-type Message struct {
-	Code int    `json:code`
-	Msg  string `json:msg`
-}
-
-type fn func(w http.ResponseWriter, r *http.Request) bool
-
 //
-//
+// This function already contains the method that does
+// the validation of the token, only receives a parameter
+// that is the handler to be executed if token is true
 //
 func HandlerAuth(handler http.HandlerFunc) http.HandlerFunc {
 
@@ -116,7 +126,8 @@ func HandlerAuth(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 //
-//
+// Function responsible for abstraction and receive the
+// authentication function and the handler that will execute if it is true
 //
 func HandlerFuncAuth(auth fn, handler http.HandlerFunc) http.HandlerFunc {
 
@@ -156,19 +167,19 @@ func check(e error) {
 }
 
 //
-//
+// Mounting the properties on the api screen
 //
 func ShowScreen(cfg *Configs) {
 
 	//
+	// Basic Authentication
 	//
-	//
-	login := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/login"
+	oauthToken := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/oauth/token"
 
 	//
 	//
 	//
-	validate := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/validate"
+	// validate := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/validate"
 
 	//
 	//
@@ -178,7 +189,7 @@ func ShowScreen(cfg *Configs) {
 	//
 	//
 	//
-	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/print"
+	printer := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + "/v1/print"
 
 	//
 	//
@@ -192,28 +203,15 @@ func ShowScreen(cfg *Configs) {
 	//
 	fmt.Println("Start port:", cfg.ServerPort)
 	fmt.Println("Endpoints:")
-	fmt.Println(login)
-	fmt.Println(validate)
+	fmt.Println(oauthToken)
 	fmt.Println(ping)
 	fmt.Println(printer)
-
 	fmt.Println("Max bytes:", sizeMb, "Mb")
 
 	//
 	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
 	//
 	fmt.Println("Requests ", NewLimiter, "per 1 second")
-
-	//
-	// list route
-	//
-
-	// httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
-
-	// finList := httpList.FieldByIndex([]int{51})
-
-	// fmt.Println(finList)
-
 }
 
 //
