@@ -18,13 +18,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/codegangsta/negroni"
 	// "github.com/dgrijalva/jwt-go"
 	"github.com/didip/tollbooth"
-	"github.com/jeffotoni/printserver/authentication"
+	auth0 "github.com/jeffotoni/printserver/authentication"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	// "reflect"
 	"time"
 )
 
@@ -174,13 +176,13 @@ func ShowScreen(cfg *Configs) {
 	//
 	// Maximum 5 requests per second per client. Additional requests result in a HTTP 429 (Too Many Requests) error.
 	//
-	fmt.Println("NewLimiter:", NewLimiter)
+	fmt.Println("Requests ", NewLimiter, "per 1 second")
 }
 
 //
 // Testing whether the service is online
 //
-func Ping(w http.ResponseWriter, req *http.Request) {
+func Ping(w http.ResponseWriter, r *http.Request) {
 
 	//
 	//
@@ -221,6 +223,10 @@ func Ping(w http.ResponseWriter, req *http.Request) {
 	//
 	//
 	w.Write(pong)
+
+	//fmt.Println(pong)
+	// nextHandler(w, r)
+
 }
 
 //
@@ -407,8 +413,9 @@ func Print(w http.ResponseWriter, req *http.Request) {
 	w.Write(json)
 }
 
-// do whatever you need to get your variable
-
+//
+// start
+//
 func main() {
 
 	//
@@ -424,7 +431,7 @@ func main() {
 	// You can create a generic limiter for all your handlers
 	// or one for each handler. Your choice.
 	// This limiter basically says: allow at most 10 request per 1 second.
-	limiter := tollbooth.NewLimiter(5, time.Second)
+	limiter := tollbooth.NewLimiter(NewLimiter, time.Second)
 
 	// This is an example on how to limit only GET and POST requests.
 	limiter.Methods = []string{"GET", "POST"}
@@ -442,27 +449,61 @@ func main() {
 	//
 	// Create a request limiter per handler.
 	//
-	http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+	// http.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+
+	mux := http.NewServeMux()
+
+	mux.Handle("/ping", tollbooth.LimitFuncHandler(limiter, Ping))
+
+	mux.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
+
+	mux.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+
+	nClassic := negroni.Classic()
+
+	//n := negroni.New()
+	nClassic.Use(negroni.HandlerFunc(auth0.ValidateToken))
+	//nClassic.Use(negroni.HandlerFunc(Ping))
+	// negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping))
+
+	nClassic.UseHandler(mux)
+
+	//
+	// Off the default mux
+	//
+	http.Handle("/login", tollbooth.LimitFuncHandler(limiter, auth0.Login))
+
+	// http.HandleFunc("/ping", Ping)
 
 	//
 	// Create a request limiter per handler.
 	//
-	http.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
+	//http.Handle("/ping2", tollbooth.LimitFuncHandler(limiter, Ping2))
 
 	//
 	// Create the print server
 	//
-	http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
+	//http.Handle("/print", tollbooth.LimitFuncHandler(limiter, Print))
 
 	//
 	// Login
 	//
-	http.HandleFunc("/login", authentication.Login)
+	//http.HandleFunc("/login", auth0.Login)
 
 	//
 	// Validate
 	//
-	http.HandleFunc("/validate", authentication.ValidateToken)
+	// http.HandleFunc("/validate", auth0.ValidateToken)
+
+	// http.Handle("/ping", negroni.New(negroni.HandlerFunc(auth0.ValidateToken), negroni.HandlerFunc(Ping)))
+
+	//
+	// list route
+	//
+
+	// httpList := reflect.ValueOf(http.DefaultServeMux).Elem()
+	// finList := httpList.FieldByIndex([]int{1})
+	// fmt.Println(finList)
 
 	//
 	//
@@ -471,9 +512,9 @@ func main() {
 
 		Addr: ":" + cfg.ServerPort,
 
-		// Handler:        myHandlerHere,
-		ReadTimeout:    30 * time.Second,
-		WriteTimeout:   20 * time.Second,
+		Handler: nClassic,
+		//ReadTimeout:    30 * time.Second,
+		//WriteTimeout:   20 * time.Second,
 		MaxHeaderBytes: 1 << 23, // Size accepted by package
 	}
 

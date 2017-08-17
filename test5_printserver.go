@@ -19,11 +19,25 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
-	// "os"
+	"os"
 	"time"
 )
 
 func main() {
+
+	token := ""
+
+	if len(os.Args) > 1 {
+
+		//fmt.Println(os.Args[1])
+		token = os.Args[1]
+
+	} else {
+
+		fmt.Println("Passes the token as argument!")
+	}
+
+	// os.Exit(1)
 
 	endPoint1 := "http://localhost:9001/ping"
 	//endPoint2 = "http://localhost:9001/ping2"
@@ -32,12 +46,12 @@ func main() {
 	// we want to limit our handling of incoming requests.
 	// We'll serve these requests off a channel of the
 	// same name.
-	requests := make(chan int, 10)
+	requests := make(chan int, 350)
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 350; i++ {
 
 		println("Loading requests: ", fmt.Sprintf("%d", i))
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(time.Millisecond * 2)
 		requests <- i
 	}
 
@@ -46,7 +60,7 @@ func main() {
 	// This `limiter` channel will receive a value
 	// every 100 or 300 milliseconds. This is the regulator in
 	// our rate limiting scheme.
-	limiter := time.Tick(time.Millisecond * 100)
+	limiter := time.Tick(time.Millisecond * 5)
 
 	// time start
 	//
@@ -60,8 +74,14 @@ func main() {
 
 		<-limiter
 
-		msg := Shoot.ShootUrl(endPoint1)
+		msg := Shoot.ShootUrl(endPoint1, token)
 		fmt.Println("request: ", req, "msg: ", msg)
+
+		if req == 200 {
+			fmt.Println("pause 2 segs")
+			time.Sleep(time.Second * 5)
+		}
+
 	}
 
 	time2 := time.Now()
