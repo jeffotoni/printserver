@@ -39,9 +39,9 @@ const (
 	NewLimiter      = 250
 	SizeByteAllowed = 1 << 23
 
-	HandlerOauthToken = "/token"
-	HandlerV1Print    = "/print"
-	HandlerPing       = "/ping"
+	HandlerToken   = "/token"
+	HandlerV1Print = "/print"
+	HandlerPing    = "/ping"
 )
 
 //
@@ -175,7 +175,7 @@ func ShowScreen(cfg *Configs) {
 	//
 	// Basic Authentication
 	//
-	oauthToken := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerOauthToken
+	oauthToken := cfg.Schema + "://" + cfg.ServerHost + ":" + cfg.ServerPort + HandlerToken
 
 	//
 	//
@@ -434,7 +434,7 @@ func main() {
 	// Off the default mux
 	// Does not need authentication, only user key and token
 	//
-	mux.Handle(HandlerOauthToken, tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
+	mux.Handle(HandlerToken, tollbooth.LimitFuncHandler(limiter, auth0.LoginBasic))
 
 	// mux.Handle("/validate", tollbooth.LimitFuncHandler(limiter, auth0.ValidateToken))
 

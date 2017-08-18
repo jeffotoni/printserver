@@ -23,6 +23,10 @@ type Ping struct {
 	Msg string `json:"msg"`
 }
 
+type Token struct {
+	Token string `json:"token"`
+}
+
 func ShootUrl(Url string, Token string) string {
 
 	var ping = &Ping{}
@@ -73,6 +77,57 @@ func ShootUrl(Url string, Token string) string {
 	} else {
 
 		ping.Msg = ""
+		return string("error")
+
+	}
+}
+
+func GeToken(Url string, TokenAccess string, KeyAccess string) string {
+
+	var token = &Token{}
+
+	req, err := http.NewRequest("POST", Url, nil)
+
+	// req.Header.Set("X-Custom-Header", "valueHeader")
+
+	req.Header.Set("Authorization", "Basic "+TokenAccess+":"+KeyAccess)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.Status == "200 OK" {
+
+		bodyToken, _ := ioutil.ReadAll(resp.Body)
+
+		// fmt.Println("response Body:", string(body))
+
+		json.Unmarshal([]byte(string(bodyToken)), &token)
+
+		//
+		//
+		//
+		tokenjson := token.Token
+
+		//
+		//
+		//
+		token.Token = ""
+
+		return string(tokenjson)
+
+	} else {
+
+		token.Token = ""
 		return string("error")
 
 	}

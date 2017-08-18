@@ -19,30 +19,36 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
-	"os"
+	// "os"
 	"time"
 )
 
 func main() {
 
-	token := ""
-	endPoint1 := "http://"
+	endPoinToken := "http://localhost:9001/token"
+	endPoint1 := "http://localhost:9001/ping"
 
-	if len(os.Args) > 2 {
+	//
+	// get token
+	//
 
-		//fmt.Println(os.Args[1])
-		token = os.Args[1]
-		endPoint1 += os.Args[2]
+	TokenString := Shoot.GeToken(endPoinToken, "MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=", "OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=")
 
-	} else {
+	// if len(os.Args) > 2 {
 
-		fmt.Println("Passes the token as argument!")
-		os.Exit(1)
-	}
+	// 	//fmt.Println(os.Args[1])
+	// 	token = os.Args[1]
+	// 	endPoint1 += os.Args[2]
+
+	// } else {
+
+	// 	fmt.Println("Passes the token as argument!")
+	// 	os.Exit(1)
+	// }
 
 	// fmt.Println(endPoint1)
 	// os.Exit(1)
-	// curl -X POST -H "Content-Type: application/json" -H "Authorization: Basic YWRtaW4=:MTIzNDU=" localhost:9001/login
+	// curl -X POST -H "Content-Type: application/json" -H "Authorization: Basic MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=:OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=" localhost:9001/token
 	// os.Exit(1)
 
 	//endPoint1 := "http://localhost:9001/ping"
@@ -57,7 +63,7 @@ func main() {
 	for i := 1; i <= 200; i++ {
 
 		println("Loading requests: ", fmt.Sprintf("%d", i))
-		time.Sleep(time.Millisecond * 2)
+		time.Sleep(time.Millisecond * 40)
 		requests <- i
 	}
 
@@ -66,7 +72,7 @@ func main() {
 	// This `limiter` channel will receive a value
 	// every 100 or 300 milliseconds. This is the regulator in
 	// our rate limiting scheme.
-	limiter := time.Tick(time.Millisecond * 5)
+	limiter := time.Tick(time.Millisecond * 35)
 
 	// time start
 	//
@@ -80,7 +86,7 @@ func main() {
 
 		<-limiter
 
-		msg := Shoot.ShootUrl(endPoint1, token)
+		msg := Shoot.ShootUrl(endPoint1, TokenString)
 		fmt.Println("request: ", req, "msg: ", msg)
 
 		if req == 200 {
