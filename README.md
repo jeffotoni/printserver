@@ -39,6 +39,40 @@ $ openssl genrsa -out private.rsa 1024
 $ openssl rsa -in private.rsa -pubout > public.rsa.pub
 
 ```
+# Simulate 
+
+```go
+
+$ go run test5_printserver.go
+
+$ go run test4_printserver.go
+
+$ go run test3_printserver.go
+
+$ go run test2_printserver.go
+
+$ go run test_printserver.go
+
+
+```
+
+# Simulate Curl
+
+```sh
+
+$ curl -X POST -H "Content-Type: application/json" \
+-H "Authorization: Basic MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=:OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=" \
+localhost:9001/token
+
+$ curl -X POST -H "Content-Type: application/json" \
+-H "Authorization: Bearer <TOKEN>" \
+localhost:9001/ping
+
+$ curl -X POST -H "Content-Type: application/json" \
+-H "Authorization: Bearer <TOKEN>" \
+localhost:9001/print
+
+```
 
 # Main function
 
