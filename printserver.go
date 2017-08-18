@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/negroni"
-	// "github.com/dgrijalva/jwt-go"
 	"github.com/didip/tollbooth"
 	authjwt "github.com/jeffotoni/printserver/authentication"
 	"log"
