@@ -307,6 +307,9 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 }
 
+//
+// Authentication With Post Json
+//
 func LoginJson(w http.ResponseWriter, r *http.Request) {
 
 	//
@@ -326,12 +329,14 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 
 		if errj != nil {
 
-			fmt.Fprintln(w, "Error generating json!")
+			HttpWriteJson(w, "error", "json.Marshal error generating!", http.StatusUnauthorized)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
+
 		w.Header().Set("Content-Type", "application/json")
+
 		w.Write(msgJson)
 
 		return
@@ -344,12 +349,14 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 
 		if errj != nil {
 
-			fmt.Fprintln(w, "Error generating json!")
+			HttpWriteJson(w, "error", "json.Marshal error generating!", http.StatusUnauthorized)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
+
 		w.Header().Set("Content-Type", "application/json")
+
 		w.Write(msgJson)
 
 		return
@@ -364,8 +371,8 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 
 	err := json.Unmarshal(bodyJson, &model)
 
-	fmt.Println("Err: ", err)
-	fmt.Println(model.Login)
+	//fmt.Println("Err: ", err)
+	//fmt.Println(model.Login)
 
 	if err != nil {
 
@@ -379,10 +386,10 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(msgJson)
 
-		//fmt.Println("Body:", )
+		w.Header().Set("Content-Type", "application/json")
+
+		w.Write(msgJson)
 
 		return
 	}
@@ -392,9 +399,9 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 		model.Password = ""
 		model.Role = "admin"
 
-		token := GenerateJWT(model)
+		token, expires := GenerateJWT(model)
 
-		result := models.ResponseToken{token}
+		result := models.ResponseToken{token, expires}
 		jsonResult, err := json.Marshal(result)
 
 		if err != nil {
@@ -403,12 +410,15 @@ func LoginJson(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
+
 		w.Header().Set("Content-Type", "application/json")
+
 		w.Write(jsonResult)
 
 	} else {
 
 		w.WriteHeader(http.StatusForbidden)
+
 		fmt.Fprintln(w, "Invalid user or key!")
 	}
 }
