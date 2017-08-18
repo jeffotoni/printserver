@@ -256,6 +256,11 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
+		stringErr := "Invalid User or Key!: user:" + tokenUserDecodeS + " key: " + keyUserDecS
+
+		//
+		//
+		//
 		w.WriteHeader(http.StatusForbidden)
 
 		//
@@ -266,7 +271,7 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 		//
 		//
 		//
-		HttpWriteJson(w, "error", "Invalid User or Key!", http.StatusUnauthorized)
+		HttpWriteJson(w, "error", stringErr, http.StatusUnauthorized)
 	}
 
 	//HttpWriteJson(w, "success", http.StatusText(http.StatusOK), http.StatusOK)
