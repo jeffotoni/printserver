@@ -329,7 +329,7 @@ func HandlerValidate(w http.ResponseWriter, r *http.Request) bool {
 
 	claims, ok := parsedToken.Claims.(*models.Claim)
 
-	if !ok || claims.User != "ADMIN" {
+	if !ok || claims.User != UserR {
 
 		//w.WriteHeader(http.StatusAccepted)
 		//HttpWriteJson(w, "error", "There's something strange about your token!", http.StatusAccepted)
@@ -379,7 +379,7 @@ func ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := parsedToken.Claims.(*models.Claim)
 
-	if !ok || claims.User != "ADMIN" {
+	if !ok || claims.User != UserR {
 
 		//w.WriteHeader(http.StatusAccepted)
 		HttpWriteJson(w, "error", "There's something strange about your token!", http.StatusAccepted)
