@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
-	// "os"
+	"os"
 	"time"
 )
 
@@ -33,6 +33,10 @@ func main() {
 	//
 
 	TokenString := Shoot.GeToken(endPoinToken, "MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=", "OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=")
+
+	fmt.Print(TokenString)
+
+	os.Exit(1)
 
 	// if len(os.Args) > 2 {
 
@@ -58,9 +62,9 @@ func main() {
 	// we want to limit our handling of incoming requests.
 	// We'll serve these requests off a channel of the
 	// same name.
-	requests := make(chan int, 200)
+	requests := make(chan int, 50)
 
-	for i := 1; i <= 200; i++ {
+	for i := 1; i <= 50; i++ {
 
 		println("Loading requests: ", fmt.Sprintf("%d", i))
 		time.Sleep(time.Millisecond * 40)

@@ -12,7 +12,7 @@ package request
 
 import (
 	"encoding/json"
-	// "fmt"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -23,7 +23,7 @@ type Ping struct {
 	Msg string `json:"msg"`
 }
 
-type Token struct {
+type TokenStruct struct {
 	Token string `json:"token"`
 }
 
@@ -84,11 +84,11 @@ func ShootUrl(Url string, Token string) string {
 
 func GeToken(Url string, TokenAccess string, KeyAccess string) string {
 
-	var token = &Token{}
+	var token = &TokenStruct{}
 
 	req, err := http.NewRequest("POST", Url, nil)
 
-	// req.Header.Set("X-Custom-Header", "valueHeader")
+	//req.Header.Set("X-Custom-Header", "valueHeader")
 
 	req.Header.Set("Authorization", "Basic "+TokenAccess+":"+KeyAccess)
 
@@ -104,6 +104,8 @@ func GeToken(Url string, TokenAccess string, KeyAccess string) string {
 	}
 
 	defer resp.Body.Close()
+
+	fmt.Println(resp.Status)
 
 	if resp.Status == "200 OK" {
 
