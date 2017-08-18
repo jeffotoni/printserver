@@ -207,12 +207,12 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	//
 	// User, Login string
 	//
-	tokenUserDecodeS := string(tokenUserDecode)
+	tokenUserDecodeS := strings.TrimSpace(strings.Trim(string(tokenUserDecode), " "))
 
 	//
 	// key user, string
 	//
-	keyUserDecS := string(keyUserDec)
+	keyUserDecS := strings.TrimSpace(strings.Trim(string(keyUserDec), " "))
 
 	//
 	// Validate user and password in the database

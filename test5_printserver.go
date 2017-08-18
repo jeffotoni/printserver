@@ -34,7 +34,7 @@ func main() {
 
 	TokenString := Shoot.GeToken(endPoinToken, "MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=", "OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=")
 
-	fmt.Print(TokenString)
+	fmt.Println("T: ", TokenString)
 
 	os.Exit(1)
 
