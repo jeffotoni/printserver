@@ -19,7 +19,8 @@ package main
 import (
 	"fmt"
 	Shoot "github.com/jeffotoni/printserver/pkg"
-	"os"
+	// "os"
+	"strings"
 	"time"
 )
 
@@ -34,9 +35,11 @@ func main() {
 
 	TokenString := Shoot.GeToken(endPoinToken, "MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=", "OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=")
 
-	fmt.Println("T: ", TokenString)
+	TokenString = strings.TrimSpace(strings.Trim(TokenString, " "))
 
-	os.Exit(1)
+	fmt.Println("Token: ", TokenString)
+
+	// os.Exit(1)
 
 	// if len(os.Args) > 2 {
 

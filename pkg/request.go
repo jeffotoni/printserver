@@ -48,6 +48,14 @@ func ShootUrl(Url string, Token string) string {
 
 	defer resp.Body.Close()
 
+	//
+	//
+	//
+	fmt.Println("Status: ", resp.Status)
+
+	//
+	//
+	//
 	if resp.Status == "200 OK" {
 
 		// fmt.Println("response Status:", resp.Status)
