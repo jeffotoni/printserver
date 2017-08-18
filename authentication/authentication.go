@@ -21,6 +21,7 @@ import (
 	"github.com/jeffotoni/printserver/models"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -102,7 +103,27 @@ func init() {
 //
 // jwt GenerateJWT
 //
-func GenerateJWT(model models.User) string {
+func GenerateJWT(model models.User) (string, string) {
+
+	//
+	// Generating date validation to return to the user
+	//
+	Expires := time.Now().Add(time.Hour * 24 * 10).Unix()
+
+	//
+	// convert int64
+	//
+	ExpiresInt64, _ := strconv.ParseInt(fmt.Sprintf("%v", Expires), 10, 64)
+
+	//
+	// convert time unix to Date RFC
+	//
+	ExpiresDateAll := time.Unix(ExpiresInt64, 0)
+
+	//
+	// Date
+	//
+	ExpiresDate := ExpiresDateAll.Format("2009-09-02")
 
 	//
 	// claims Token data, the header
@@ -115,7 +136,7 @@ func GenerateJWT(model models.User) string {
 			//
 			// Expires in 24 hours * 10 days
 			//
-			ExpiresAt: time.Now().Add(time.Hour * 24 * 10).Unix(),
+			ExpiresAt: Expires,
 			Issuer:    ProjectTitle,
 		},
 	}
@@ -132,13 +153,13 @@ func GenerateJWT(model models.User) string {
 
 	if err != nil {
 
-		return "Could not sign the token!"
+		return "Could not sign the token!", "2006-01-02"
 	}
 
 	//
 	// return token string
 	//
-	return tokenString
+	return tokenString, ExpiresDate
 }
 
 //
@@ -227,9 +248,9 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 		model.Password = ""
 		model.Role = "admin"
 
-		token := GenerateJWT(model)
+		token, expires := GenerateJWT(model)
 
-		result := models.ResponseToken{token}
+		result := models.ResponseToken{token, expires}
 		jsonResult, err := json.Marshal(result)
 
 		if err != nil {
@@ -254,6 +275,13 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 		//
 		w.Write(jsonResult)
 
+		/**
+		{
+		  "Token": "39a3099b45634f6eb511991fddde83752_v2",
+		  "Expires": "2026-09-14"
+		}
+		*/
+
 	} else {
 
 		stringErr := "Invalid User or Key!"
@@ -277,21 +305,6 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	//HttpWriteJson(w, "success", http.StatusText(http.StatusOK), http.StatusOK)
 
 	defer r.Body.Close()
-
-	/**
-
-	{
-	  "accessToken": "39a3099b45634f6eb511991fbbe83752_v2",
-	  "access_token": "39a3099b45634f6eb511991fbbe83752_v2",
-	  "expires_in": "2026-09-14",
-	  "refreshToken": "1defad3474a8423f87a04adc588e7c7b_v2",
-	  "refresh_token": "1defad3474a8423f87a04adc588e7c7b_v2",
-	  "scope": "RECEIVE_FUNDS,REFUND,MANAGE_ACCOUNT_INFO",
-	  "moipAccount": {
-	    "id": "MPA-SVOAZT7WWHGB"
-	  }
-
-	*/
 }
 
 //
