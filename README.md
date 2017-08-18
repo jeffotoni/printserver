@@ -61,15 +61,23 @@ $ go run test_printserver.go
 ```sh
 
 $ curl -X POST -H "Content-Type: application/json" \
+
 -H "Authorization: Basic MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM=:OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU=" \
+
 localhost:9001/token
 
 $ curl -X POST -H "Content-Type: application/json" \
+
 -H "Authorization: Bearer <TOKEN>" \
+
 localhost:9001/ping
 
-$ curl -X POST -H "Content-Type: application/json" \
+$ curl -X POST -H "Content-Type: application/x-www-form-urlencoded" \
+
 -H "Authorization: Bearer <TOKEN>" \
+
+-d "zpl='^xa^cfa,50^fo100,100^fdHello World!^fs^xz'&code=000198"
+
 localhost:9001/print
 
 ```
