@@ -132,8 +132,7 @@ func GenerateJWT(model models.User) string {
 
 	if err != nil {
 
-		WriteJson("error", "Could not sign the token!")
-		return
+		return "Could not sign the token!"
 	}
 
 	//
