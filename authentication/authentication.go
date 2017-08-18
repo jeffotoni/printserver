@@ -37,8 +37,8 @@ var (
 	ExpirationHours = 24 // Hours
 	DayExpiration   = 10 // Days
 
-	UserR = "MjEyMzJmMjk3YTU3YTVhNzQzODk0YTBlNGE4MDFmYzM="
-	PassR = "OTcyZGFkZGNhY2YyZmVhMjUzZmRhODY5NTY0ODUxMTU="
+	UserR = "21232f297a57a5a743894a0e4a801fc3"
+	PassR = "972daddcacf2fea253fda86956485115"
 )
 
 //
@@ -256,7 +256,7 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 
-		stringErr := "Invalid User or Key!: user:" + tokenUserDecodeS + " key: " + keyUserDecS
+		stringErr := "Invalid User or Key!"
 
 		//
 		//
