@@ -13,7 +13,7 @@
 package models
 
 //
-// jwt
+// ResponseToken
 //
 type ResponseToken struct {
 

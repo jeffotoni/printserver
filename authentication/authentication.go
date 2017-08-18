@@ -307,6 +307,112 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 }
 
+func LoginJson(w http.ResponseWriter, r *http.Request) {
+
+	//
+	// Validating json if correct
+	//
+	bodyJson, _ := ioutil.ReadAll(r.Body)
+
+	//
+	// Looking for keys in the first and last position
+	//
+	last_pos := len(bodyJson) - 1
+
+	if string(bodyJson[0]) != "{" {
+
+		msgJsonStruct := &JsonMsg{"Error", "Missing keys on your json '{'"}
+		msgJson, errj := json.Marshal(msgJsonStruct)
+
+		if errj != nil {
+
+			fmt.Fprintln(w, "Error generating json!")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(msgJson)
+
+		return
+	}
+
+	if string(bodyJson[last_pos]) != "}" {
+
+		msgJsonStruct := &JsonMsg{"Error", "Missing keys on your json '}'"}
+		msgJson, errj := json.Marshal(msgJsonStruct)
+
+		if errj != nil {
+
+			fmt.Fprintln(w, "Error generating json!")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(msgJson)
+
+		return
+	}
+
+	var model models.User
+
+	//
+	//
+	//
+	// err := json.NewDecoder(r.Body).Decode(&user)
+
+	err := json.Unmarshal(bodyJson, &model)
+
+	fmt.Println("Err: ", err)
+	fmt.Println(model.Login)
+
+	if err != nil {
+
+		msgJsonStruct := &JsonMsg{"Error", "Error reading json, Configures your json syntax!"}
+		msgJson, errj := json.Marshal(msgJsonStruct)
+
+		if errj != nil {
+
+			fmt.Fprintln(w, "Error generating json!")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(msgJson)
+
+		//fmt.Println("Body:", )
+
+		return
+	}
+
+	if model.Login == "jeff" && model.Password == "1234" {
+
+		model.Password = ""
+		model.Role = "admin"
+
+		token := GenerateJWT(model)
+
+		result := models.ResponseToken{token}
+		jsonResult, err := json.Marshal(result)
+
+		if err != nil {
+			fmt.Fprintln(w, "Error generating json!")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResult)
+
+	} else {
+
+		w.WriteHeader(http.StatusForbidden)
+		fmt.Fprintln(w, "Invalid user or key!")
+	}
+}
+
 //
 // HandlerValidate
 //
