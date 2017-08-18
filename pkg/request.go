@@ -60,11 +60,11 @@ func ShootUrl(Url string, Token string) string {
 
 		// fmt.Println("response Status:", resp.Status)
 
-		// fmt.Println("response Headers:", resp.Header)
+		fmt.Println("response Headers:", resp.Header)
 
 		body, _ := ioutil.ReadAll(resp.Body)
 
-		// fmt.Println("response Body:", string(body))
+		fmt.Println("response Body:", string(body))
 
 		json.Unmarshal([]byte(string(body)), &ping)
 
