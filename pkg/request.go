@@ -103,7 +103,7 @@ func GeToken(Url string, TokenAccess string, KeyAccess string) string {
 
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Status)
+	fmt.Println("Status", resp.Status)
 
 	if resp.Status == "200 OK" {
 

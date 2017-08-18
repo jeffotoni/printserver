@@ -257,7 +257,16 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintln(w, "Invalid user or key!")
+
+		//
+		//
+		//
+		w.Header().Set("Content-Type", "application/json")
+
+		//
+		//
+		//
+		HttpWriteJson(w, "error", "Invalid User or Key!", http.StatusUnauthorized)
 	}
 
 	//HttpWriteJson(w, "success", http.StatusText(http.StatusOK), http.StatusOK)
