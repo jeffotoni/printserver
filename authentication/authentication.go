@@ -239,8 +239,19 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		//
+		//
+		//
 		w.WriteHeader(http.StatusOK)
+
+		//
+		//
+		//
 		w.Header().Set("Content-Type", "application/json")
+
+		//
+		//
+		//
 		w.Write(jsonResult)
 
 	} else {
@@ -249,7 +260,7 @@ func LoginBasic(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Invalid user or key!")
 	}
 
-	HttpWriteJson(w, "success", http.StatusText(http.StatusOK), http.StatusOK)
+	//HttpWriteJson(w, "success", http.StatusText(http.StatusOK), http.StatusOK)
 
 	defer r.Body.Close()
 

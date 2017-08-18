@@ -17,8 +17,6 @@ import (
 	"net/http"
 )
 
-// var token = `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiamVmZiIsImV4cCI6MTUwMjk0MjUzMCwiaXNzIjoicHJpbnRzZXJ2ZXIgemVicmEifQ.UuFVkuQ5UTE7Vu4RXgbKbb28AgjXmDnjpMEK1Sq866ozeCP2KNkK-L3ek6-aAErYA5ROODESYI7ASYLJ-k00Ff8mBbBLakqyZvCY5dPfYXbx9xfUzuGnlrtOyuTuxi3wQjKPgtfIsH8DN1aJN-_wRk6on9N6KHz-CE4NmKDj0_U`
-
 type Ping struct {
 	Msg string `json:"msg"`
 }
